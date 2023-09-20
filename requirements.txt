@@ -1,0 +1,28 @@
+aiohttp
+numpy
+pandas
+requests
+joblib
+
+#APi
+fastapi
+gunicorn
+uvicorn
+boto3
+
+#models
+scikit-learn
+scipy
+pmdarima
+xgboost
+
+#Juphyter
+seaborn
+holidays
+tabulate
+# lambdas
+dependency-injector
+
+# Graph
+matplotlib
+plotly

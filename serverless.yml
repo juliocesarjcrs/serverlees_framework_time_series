@@ -1,0 +1,36 @@
+service: aws-time-series-expense-control
+
+frameworkVersion: '3'
+
+
+provider:
+  name: aws
+  runtime: python3.8
+
+functions:
+  - ${file(./${self:custom.basePathFunctions}/forecast/functions.yml), ''}
+  - ${file(./${self:custom.basePathFunctions}/training/functions.yml), ''}
+
+resources:
+  Resources:
+    NewResource:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: local-bucket
+
+custom:
+  basePathFunctions: src/lambdas/
+  s3:
+    host: localhost
+    directory: ./buckets
+
+plugins:
+  - serverless-python-requirements
+  - serverless-offline
+  - serverless-s3-local
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+    # - venv-py3.8/**
+

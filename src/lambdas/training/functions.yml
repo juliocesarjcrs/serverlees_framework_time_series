@@ -1,0 +1,9 @@
+  select_model:
+    name: ${sls:stage}-prediction
+    handler: src/lambdas/training/select_model/select_model.handler
+    # layers:
+    #   - Ref: PythonRequirementsLambdaLayer
+    events:
+          - http:
+              method: POST
+              path: training/select-model

@@ -1,0 +1,19 @@
+# Editor configuration, see https://editorconfig.org
+root = true
+
+# Define el estilo de indentación
+[*]
+indent_style = space
+indent_size = 4
+
+# Aplica las configuraciones para los archivos Python
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Aplica las configuraciones para los archivos JSON
+[*.json]
+indent_style = space
+indent_size = 2
+
+# Otras configuraciones específicas de tu proyecto, si es necesario

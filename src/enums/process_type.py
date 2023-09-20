@@ -1,0 +1,14 @@
+from enum import Enum
+
+class ProcessType(Enum):
+    """Process Type
+
+    Args:
+        Enum (_type_): _description_
+    """
+    LOAD_RAW_DATA = 'LOAD_RAW_DATA'
+    EXPLORATION_DATA_ANALYSIS = 'EXPLORATION_DATA_ANALYSIS'
+    TRAIN_EVALUATE = 'TRAIN_EVALUATE'
+    TRAIN_AND_EVALUATE_INDIVIDUAL_SERIES = 'TRAIN_AND_EVALUATE_INDIVIDUAL_SERIES'
+    SELECT_MODEL = 'SELECT_MODEL'
+    FINAL_PREDICT = 'FINAL_PREDICT'
