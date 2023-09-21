@@ -1,4 +1,5 @@
 import json
+import pandas as pd
 from fastapi import FastAPI
 from src.core.facades.data_processing_facade import DataProcessingFacade
 from src.error.lambda_error_handler import LambdaErrorHandler
@@ -56,7 +57,28 @@ def select_model(query_sring_parameters: dict, body):
 
     context.save_file(FileType.MODEL.value, content)
 
+    save_metrics_to_csv(context, result_best_model)
+
     return JsonResponse.handler_json_response({'model_metrics': model_metrics, 'best_model': data_as_dict})
+
+
+def save_metrics_to_csv(context, result_best_model: dict):
+    result_best_model_without_model_fit = {
+        key: value for key, value in result_best_model.items() if key != 'model_fit'}
+    metrics_df = pd.DataFrame(result_best_model_without_model_fit)
+    df_transposed = metrics_df.transpose()
+
+    # Reiniciar el índice para que 'model_name' se convierta en una columna
+    df_transposed.reset_index(inplace=True)
+
+    # Cambiar el nombre de la columna 'index' a 'model_name' (opcional)
+    df_transposed.rename(columns={'index': 'model_name'}, inplace=True)
+    content: ContentData = {
+        'file': df_transposed,
+        'directory': './buckets/local-bucket/models',
+        'file_name': 'model_metrics.csv'
+    }
+    context.save_file(FileType.CSV.value, content)
 
 
 def handler(event: dict, context: dict):

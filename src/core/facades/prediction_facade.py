@@ -1,4 +1,5 @@
 import pandas as pd
+import ast
 from src.core.storage.s3Client.s3_client import S3Manager
 from src.core.training.time_series_feature_engineering import TimeSeriesFeatureEngineering
 
@@ -33,6 +34,8 @@ class PredictionFacade:
 
         # Define the number of months
         months_to_predict = int(params_model['months_to_predict'])
+        column_order = params_model['train_columns']
+        column_order = ast.literal_eval(column_order)
 
         # Convert the start date to a datetime object
         start_date = pd.to_datetime(start_date)
@@ -55,15 +58,6 @@ class PredictionFacade:
             data_evaluate, 'holidays_cont')
         # column_order2 = ['holidays_cont', 'month', 'year', 'days_in_month',
         #                  'is_first_month', 'is_last_month', 'day', 'day_of_week', 'day_of_year']
-        column_order = ["year",
-                        "month",
-                        "day",
-                        "day_of_week",
-                        "day_of_year",
-                        "is_first_month",
-                        "is_last_month",
-                        "days_in_month",
-                        "holidays_cont"]
 
     # Reorganiza las columnas según el orden deseado
         data_evaluate_ordered = data_evaluate[column_order]
