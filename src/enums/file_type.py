@@ -12,4 +12,4 @@ class FileType(Enum):
         Enum (_type_): _description_
     """
     MODEL = 'MODEL'
-    DATAFRAME = 'DATAFRAME'
+    CSV = 'CSV'

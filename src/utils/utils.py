@@ -49,11 +49,8 @@ class Utils:
         directory = './models'
         isdir = os.path.isdir(directory)
         # si no existe crea el directorio
-        print('isdir', isdir)
         if not isdir:
             os.mkdir(directory)
-        isdir2 = os.path.isdir(directory)
-        print('isdir2', isdir2)
         score_str = str(score).replace(".", "_")
         file_name = f'best_model_{score_str}.pkl'
         joblib.dump(cls, f'./models/{file_name}')

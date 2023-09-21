@@ -10,6 +10,7 @@ provider:
 functions:
   - ${file(./${self:custom.basePathFunctions}/forecast/functions.yml), ''}
   - ${file(./${self:custom.basePathFunctions}/training/functions.yml), ''}
+  - ${file(./${self:custom.basePathFunctions}/preprocessing/functions.yml), ''}
 
 resources:
   Resources:

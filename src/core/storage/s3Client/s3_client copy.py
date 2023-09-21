@@ -82,7 +82,6 @@ class S3Manager:
             # return self.read_object_from_bucket(object_key)
             self.list_objects_in_bucket()
             # self.list_files_in_folder('./buckets')
-            print(':: --------object_key::', object_key)
             return self.read_object_from_bucket(object_key)
         except Exception as exception:
             raise Exception("An error occurred: {}".format(exception))
@@ -136,9 +135,7 @@ class S3Manager:
         """
         try:
             response = self.s3_client.list_objects(Bucket=self.name_bucket)
-            print(':: response ::', response.get('Contents', []))
             object_keys = [obj['Key'] for obj in response.get('Contents', [])]
-            print(':: object_keys ::', object_keys)
             return object_keys
         except Exception as exception:
             raise Exception(

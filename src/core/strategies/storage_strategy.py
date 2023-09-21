@@ -5,7 +5,7 @@ from src.types.content_data import ContentData
 
 class StorageStrategy(ABC):
     @abstractmethod
-    def read(self, type_file: FileType, path: str):
+    def read(self, type_file: FileType, path: str, options: None):
         pass
 
     def save(self, type_file: FileType, content: ContentData):

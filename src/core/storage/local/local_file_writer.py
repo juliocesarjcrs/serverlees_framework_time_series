@@ -1,5 +1,6 @@
 import os
 import joblib
+import pandas as pd
 from src.utils.logger.logger import Logger
 
 
@@ -52,3 +53,18 @@ class LocalFileWriter:
             self.logger.info(
                 f'::: Directory does not exist, it will be created ::: {self.directory}')
             os.mkdir(self.directory)
+
+    def save_dataframe_as_csv(self, file_name: str, dataframe: pd.DataFrame):
+        """
+        Save a DataFrame to a CSV file while preserving the index and date frequency.
+
+        Args:
+            df (pandas.DataFrame): The DataFrame to be saved.
+            directory (str): The directory path where the CSV file will be saved.
+            file_name (str): The name of the CSV file.
+
+        Returns:
+            None
+        """
+        file_path_to_save = os.path.join(self.directory, file_name)
+        dataframe.to_csv(file_path_to_save, index=True, date_format='%Y-%m-%d')

@@ -59,11 +59,14 @@ class LocalFileReader:
         """
         return joblib.load(self.file_path)
 
-    def read_csv(self) -> pd.DataFrame:
+    def read_csv(self, **kwargs) -> pd.DataFrame:
         """
         Read a CSV file into a pandas DataFrame.
+
+        Args:
+            **kwargs: Additional keyword arguments to pass to pd.read_csv.
 
         Returns:
             pd.DataFrame: A DataFrame containing the data from the CSV file.
         """
-        return pd.read_csv(self.file_path, parse_dates=True, index_col='date')
+        return pd.read_csv(self.file_path, **kwargs)

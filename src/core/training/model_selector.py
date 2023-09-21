@@ -155,5 +155,4 @@ class ModelSelector:
         summary_df = summary_df.sort_values('weighted_metric', ascending=True)
 
         # Display the DataFrame with metrics
-        print(summary_df)
         return summary_df

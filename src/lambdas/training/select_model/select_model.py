@@ -24,8 +24,12 @@ def select_model(query_sring_parameters: dict, body):
     """
     type_storage = query_sring_parameters['type_storage']
     context = StorageContext(type_storage)
+    options = {
+        'parse_dates': True,
+        'index_col': 'date',
+    }
     dataframe = context.read_file(
-        FileType.DATAFRAME.value, 'buckets/local-bucket/data/processed/df_time_monthly_without_outliers.csv')
+        FileType.CSV.value, 'buckets/local-bucket/data/processed/df_time_monthly_without_outliers.csv', options)
     data_processing_facade = DataProcessingFacade(dataframe)
     model_metrics = data_processing_facade.train_models_individual(
         'date', 'cost', 'M')

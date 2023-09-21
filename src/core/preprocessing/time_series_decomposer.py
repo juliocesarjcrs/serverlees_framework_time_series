@@ -4,9 +4,11 @@ import pandas as pd
 from statsmodels.tsa.seasonal import STL
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from src.utils.logger.logger import Logger
 
 class TimeSeriesDecomposer:
+    def __init__(self, utils):
+        self.logger = Logger("ModelTraining")
 
     # def decompose_time_series():
 
@@ -29,7 +31,7 @@ class TimeSeriesDecomposer:
         if verbose:
             print('ADF Statistic: %f' % adf_result[0])
             print('p-value: %f' % p_value)
-            print('Critical Values:')
+            self.logger.info('Critical Values:')
             for key, value in adf_result[4].items():
                 print('\t%s: %.3f' % (key, value))
 

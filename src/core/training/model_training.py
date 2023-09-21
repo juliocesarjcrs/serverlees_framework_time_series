@@ -7,7 +7,7 @@ import pmdarima as pm
 import xgboost as xgb
 from sklearn.linear_model import LinearRegression
 from src.error.exception.model_training_error import ModelTrainingError
-
+from src.utils.logger.logger import Logger
 
 # Enums
 from src.enums.models_type import ModelsType
@@ -17,7 +17,6 @@ class ModelTraining:
 
     def __init__(self, utils):
         self.utils = utils
-        self.data = None
         self.datasets = []
         self.model_metrics = []
         self.models = []
@@ -29,6 +28,7 @@ class ModelTraining:
         self.features = None
         self.target = None
         self.final_submission = []
+        self.logger = Logger("ModelTraining")
 
     def set_params_model_arima(self, model_order):
         self.models.append(('Arima', tsa.ARIMA))
@@ -57,10 +57,9 @@ class ModelTraining:
     def get_names_folder(self):
         return self.names_folder
 
-
-    def set_individual_dataset(self, data, target_col):
-        X = data.drop(target_col, axis=1)
-        y = data[target_col]
+    def set_individual_dataset(self, dataframe: pd.DataFrame, target_col: str):
+        X = dataframe.drop(target_col, axis=1)
+        y = dataframe[target_col]
         self.datasets = [
             {'name': 'Normal', 'train_ratio': 0.8, 'X': X, 'y': y},
             # {'name': 'Without Outliers', 'train_ratio': 0.8, 'X': X_without_outliers, 'y': y_without_outliers}
@@ -83,10 +82,17 @@ class ModelTraining:
                 if with_model:
                     return result
                 else:
-                    result_without_model_fit = {key: value for key, value in result.items() if key != 'model_fit'}
+                    result_without_model_fit = {
+                        key: value for key, value in result.items() if key != 'model_fit'}
                     self.model_metrics.append(result_without_model_fit)
 
-    def fit_model(self, model: BaseEstimator, model_name: str, train_x, train_y, test_x, test_y) -> BaseEstimator:
+    def split_train_test_data(self, data, train_ratio):
+        train_size = int(len(data) * train_ratio)
+        train_data = data[:train_size]
+        test_data = data[train_size:]
+        return train_data, test_data
+
+    def fit_model(self, model: BaseEstimator, model_name: str, train_x: pd.DataFrame, train_y: pd.Series, test_x: pd.DataFrame, test_y: pd.Series) -> BaseEstimator:
         """
         Entrena un modelo de machine learning con datos de entrenamiento.
 
@@ -98,12 +104,15 @@ class ModelTraining:
         Returns:
             BaseEstimator: El modelo entrenado.
         """
+        parameters = {
+            'train_columns': train_x.columns.tolist()
+        }
         if model_name == ModelsType.XGBOOST.value:
-            return model.fit(train_x, train_y, eval_set=[(train_x, train_y), (test_x, test_y)], verbose=False)
+            return model.fit(train_x, train_y, eval_set=[(train_x, train_y), (test_x, test_y)], verbose=False), parameters
         else:
-            return model.fit(train_x, train_y)
+            return model.fit(train_x, train_y), parameters
 
-    def predict_model(self, model: BaseEstimator, test_x, model_name:str, target_col: str)-> pd.Series:
+    def predict_model(self, model: BaseEstimator, test_x, model_name: str, target_col: str) -> pd.Series:
         """
         Realiza predicciones utilizando un modelo entrenado.
 
@@ -129,16 +138,19 @@ class ModelTraining:
 
     def evaluate_model(self, model_name, model, train_x, train_y, test_x, test_y, target_col, is_individual=True):
         try:
-            print(f"::: START FIT MODEL {model_name} :::")
-            fitted_model = self.fit_model(model, model_name, train_x, train_y, test_x, test_y)
-            print(f"::: END FIT MODEL {model_name}   :::")
+            self.logger.info(f"::: START FIT MODEL {model_name} :::")
+            fitted_model, parameters = self.fit_model(
+                model, model_name, train_x, train_y, test_x, test_y)
+            self.logger.info(f"::: END FIT MODEL {model_name}   :::")
 
-            print(f"::: START PREDICT {model_name}   :::")
-            y_pred = self.predict_model(fitted_model, test_x, model_name, target_col)
-            print(f"::: END PREDICT {model_name}     :::")
+            self.logger.info(f"::: START PREDICT {model_name}   :::")
+            y_pred = self.predict_model(
+                fitted_model, test_x, model_name, target_col)
+            self.logger.info(f"::: END PREDICT {model_name}     :::")
 
             if not isinstance(y_pred, pd.Series) or not isinstance(test_y, pd.Series):
-                raise ValueError(f"y_pred and test_y must be pandas Series. y_pred is of type {type(y_pred)}. test_y is of type {type(test_y)}")
+                raise ValueError(
+                    f"y_pred and test_y must be pandas Series. y_pred is of type {type(y_pred)}. test_y is of type {type(test_y)}")
 
             if y_pred.shape[0] != test_y.shape[0]:
                 raise ValueError('Shapes of y_pred and test_y do not match.')
@@ -163,17 +175,17 @@ class ModelTraining:
             return {
                 'model_name': model_name,
                 'model_fit': fitted_model,
-                'metrics': metrics
+                'metrics': metrics,
+                'parameters_training': parameters
             }, y_pred
 
         except Exception as exception:
-            raise ModelTrainingError(model_name, f"Error al entrenar o evaluar el modelo {model_name}: {exception}")
-            # print(f"Error al entrenar o evaluar el modelo {model_name}: {exception}")
-            # return None, None
+            raise ModelTrainingError(
+                model_name, f"Error al entrenar o evaluar el modelo {model_name}: {exception}")
 
     # def evaluate_model(self, model_name: str, model, train_X, train_y, test_X, test_y, target_col, is_individual=True):
     #     try:
-    #         print(":: START FIT MODEL " + model_name)
+    #
     #         if model_name == "Arima":
     #             fitted_model = self.fit_arima_model(
     #                 model, train_y, self.order_arima)
@@ -190,10 +202,10 @@ class ModelTraining:
     #             fitted_model = self.fit_linear_regression_model(
     #                 model, train_X, train_y)
 
-    #         print(":: END FIT MODEL " + model_name)
+    #
 
     #         y_pred = None
-    #         print(":: START PREDICT " + model_name)
+    #
     #         if model_name == "Arima" or model_name == "SARIMA":
     #             y_pred = fitted_model.predict(
     #                 start=len(train_y), end=len(train_y) + len(test_y) - 1)
@@ -212,7 +224,7 @@ class ModelTraining:
     #             y_pred_values = fitted_model.predict(test_X)
     #             y_pred = pd.Series(y_pred_values, index=test_X.index)
 
-    #         print(":: END PREDICT " + model_name)
+    #
     #         if not isinstance(y_pred, pd.Series):
     #             raise ValueError("y_pred no es una serie")
 
@@ -247,43 +259,27 @@ class ModelTraining:
     #             'metrics': metrics
     #         }, y_pred
     #     except Exception as e:
-    #         print(f"Error al entrenar o evaluar el modelo {model_name}: {e}")
+    #
     #         return None, None
 
-    def fit_arima_model(self, model, train_y, order_arima):
-        return model(train_y, order=order_arima).fit()
+    # def fit_arima_model(self, model, train_y, order_arima):
+    #     return model(train_y, order=order_arima).fit()
 
-    def fit_sarima_model(self, model, train_y, order_arima):
-        return model(train_y, order=order_arima, seasonal_order=(P, D, Q, m), trend='c')
+    # def fit_sarima_model(self, model, train_y, order_arima):
+    #     return model(train_y, order=order_arima, seasonal_order=(P, D, Q, m), trend='c')
 
-    def fit_auto_arima_model(self, model, train_y, order_arima):
-        d = order_arima[1]
-        auto_sarima_model = model(train_y,
-                                  start_p=1, start_q=1,
-                                  test='adf',
-                                  max_p=4, max_q=4, m=7,
-                                  start_P=0, seasonal=True,
-                                  d=d, D=1,
-                                  trace=False,
-                                  error_action='ignore',
-                                  suppress_warnings=True,
-                                  stepwise=True)
-        return auto_sarima_model
+    # def fit_auto_arima_model(self, model, train_y, order_arima):
+    #     d = order_arima[1]
+    #     auto_sarima_model = model(train_y,
+    #                               start_p=1, start_q=1,
+    #                               test='adf',
+    #                               max_p=4, max_q=4, m=7,
+    #                               start_P=0, seasonal=True,
+    #                               d=d, D=1,
+    #                               trace=False,
+    #                               error_action='ignore',
+    #                               suppress_warnings=True,
+    #                               stepwise=True)
+    #     return auto_sarima_model
 
-    def fit_xgboost_model(self, model, train_X, train_y, test_X, test_y):
-        X_train = train_X[self.features]
-        X_test = test_X[self.features]
-        return model.fit(X_train, train_y, eval_set=[(X_train, train_y), (X_test, test_y)], verbose=False)
-
-    def fit_linear_regression_model(self, model, train_X, train_y):
-        return model.fit(train_X, train_y)
-
-    def split_train_test_data(self, data, train_ratio):
-        train_size = int(len(data) * train_ratio)
-        train_data = data[:train_size]
-        test_data = data[train_size:]
-        return train_data, test_data
-
-    def make_final_prediction(self):
-        self.final_submission
 
