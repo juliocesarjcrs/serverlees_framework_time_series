@@ -8,7 +8,7 @@ from src.core.strategies.s3_aws_strategy import S3AwsStrategy
 from src.core.strategies.local_strategy import LocalStrategy
 from src.enums.storage_type import StorageType
 from src.types.content_data import ContentData
-
+from src.utils.logger.logger import Logger
 
 class StorageContext:
     """
@@ -31,13 +31,18 @@ class StorageContext:
         Args:
             type_storage (StorageType): The type of storage to use (S3_AWS or LOCAL).
         """
-        # if type_storage == StorageType.S3_AWS.value:
-        #     self.strategy = S3AwsStrategy()
-        if type_storage == StorageType.LOCAL.value:
-            self.strategy = LocalStrategy()
-        else:
-            raise ValueError("Invalid type_storage")
-
+        try:
+            self.logger = Logger("StorageContext")
+            self.logger.info(f'::: type_storage = {type_storage} :::')
+            if type_storage == StorageType.S3_AWS.value:
+                self.strategy = S3AwsStrategy()
+            if type_storage == StorageType.LOCAL.value:
+                self.strategy = LocalStrategy()
+            else:
+                self.logger.error(f'::: Invalid type_storage = {type_storage} :::')
+                raise ValueError("StorageContext:Invalid type_storage")
+        except Exception as exception:
+              self.logger.error(f'::: exception = {exception} :::')
 
     def read_file(self, type_file: FileType, path: str, options= None):
         """

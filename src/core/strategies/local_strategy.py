@@ -7,7 +7,7 @@ from src.core.storage.local.local_file_writer import LocalFileWriter
 
 class LocalStrategy(StorageStrategy):
 
-    def read(self, type_file: str, path: str, options=None):
+    def read(self, type_file: FileType, path: str, options=None):
         if type_file == FileType.MODEL.value:
             file_reader = LocalFileReader(path)
             return file_reader.load_model()

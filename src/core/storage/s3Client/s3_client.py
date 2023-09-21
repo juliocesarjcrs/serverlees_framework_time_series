@@ -1,11 +1,16 @@
 import boto3
-from botocore.exceptions import ClientError
 import os
+import io
+import joblib
+import pandas as pd
+from botocore.exceptions import ClientError
+from src.utils.logger.logger import Logger
 
 
 class S3Manager:
     _instance = None
     client = None  # Declaración del atributo client
+    logger = Logger("S3Manager")
 
     def __new__(cls):
         if cls._instance is None:
@@ -74,4 +79,26 @@ class S3Manager:
             object_data = response['Body'].read()
             return object_data
         except Exception as exception:
+            raise Exception("An error occurred: {}".format(exception))
+
+    def load_model(self, bucket_name: str, object_key: str):
+        try:
+            response = self.client.get_object(
+                Bucket=bucket_name, Key=object_key)
+            model_bytes = response['Body'].read()
+            loaded_model = joblib.load(model_bytes)
+            return loaded_model
+        except ClientError as exception:
+            self.logger.error(f"Error reading the model from S3: {exception}")
+            raise Exception("An error occurred: {}".format(exception))
+
+    def read_csv(self, bucket_name: str, object_key: str, **kwargs):
+       try:
+            response = self.client.get_object(Bucket=bucket_name, Key=object_key)
+            csv_bytes = response['Body'].read()
+            csv_str = csv_bytes.decode('utf-8')
+            dataframe = pd.read_csv(io.StringIO(csv_str), **kwargs)
+            return dataframe
+       except ClientError as exception:
+            self.logger.error(f"Error reading the CSV file from S3:: {exception}")
             raise Exception("An error occurred: {}".format(exception))
