@@ -21,6 +21,7 @@ class DataProcessingFacade:
         # Set models
         self.model_training.set_model_xgboost()
         self.model_training.set_model_linear_regression()
+        self.model_training.set_model_boosted_hybrid()
 
         # train an evaluate
         self.model_training.set_individual_dataset(processed_df, target_col)
