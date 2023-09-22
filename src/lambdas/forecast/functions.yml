@@ -1,9 +1,8 @@
-  prediction:
-    name: ${sls:stage}-prediction
-    handler: src/lambdas/forecast/prediction/prediction.handler
-    # layers:
-    #   - Ref: PythonRequirementsLambdaLayer
-    events:
-          - http:
-              method: get
-              path: /predict
+prediction:
+  handler: src/lambdas/forecast/prediction/prediction.handler
+  layers:
+    - { Ref: CommonLibsLambdaLayer }
+  events:
+    - http:
+        method: get
+        path: /predict

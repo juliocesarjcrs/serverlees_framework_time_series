@@ -17,3 +17,7 @@ indent_style = space
 indent_size = 2
 
 # Otras configuraciones específicas de tu proyecto, si es necesario
+# Aplica las configuraciones para los archivos YAML del Serverless Framework
+[*.yml]
+indent_style = space
+indent_size = 2

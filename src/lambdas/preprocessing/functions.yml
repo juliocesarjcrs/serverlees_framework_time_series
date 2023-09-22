@@ -1,9 +1,8 @@
-  generateProcessedData:
-    name: ${sls:stage}-prediction
-    handler: src/lambdas/preprocessing/generate_processed_data/generate_processed_data.handler
-    # layers:
-    #   - Ref: PythonRequirementsLambdaLayer
-    events:
-          - http:
-              method: GET
-              path: preprocessing/generate-processed-data
+generateProcessedData:
+  handler: src/lambdas/preprocessing/generate_processed_data/generate_processed_data.handler
+  layers:
+    - { Ref: CommonLibsLambdaLayer }
+  events:
+    - http:
+        method: GET
+        path: preprocessing/generate-processed-data

@@ -24,15 +24,16 @@ def generate_processed_data(query_sring_parameters: dict, body):
         _type_: _description_
     """
     type_storage = query_sring_parameters['type_storage']
+    path_base = query_sring_parameters['path_base']
     context = StorageContext(type_storage)
     options = {
         'parse_dates': ["date"],
         'usecols': [1, 5],
     }
     expenses_df = context.read_file(
-        FileType.CSV.value, 'buckets/local-bucket/data/raw/expenses.csv', options)
+        FileType.CSV.value, f'{path_base}/data/raw/expenses.csv', options)
     expenses_df['date'] = expenses_df['date'].dt.tz_localize(None)
-    df_history = load_historical_data(type_storage)
+    df_history = load_historical_data(type_storage, path_base)
     processed_df = pd.concat([expenses_df, df_history], ignore_index=True)
     processed_df.set_index('date', inplace=True)
     resampled_data = processed_df.resample('M').cost.sum()
@@ -46,7 +47,7 @@ def generate_processed_data(query_sring_parameters: dict, body):
     anomalies['date'] = anomalies['date'].dt.strftime('%Y-%m-%d')
     content: ContentData = {
         'file': df_time_without_outlier,
-        'directory': './buckets/local-bucket/data/processed',
+        'directory': f'{path_base}/data/processed',
         'file_name': 'df_time_monthly_without_outliers.csv'
     }
 
@@ -55,9 +56,9 @@ def generate_processed_data(query_sring_parameters: dict, body):
     return JsonResponse.handler_json_response({'anomalies': anomalies.to_dict(orient='records')})
 
 
-def load_historical_data(type_storage: str) -> pd.DataFrame:
+def load_historical_data(type_storage: str, path_base:str) -> pd.DataFrame:
     context = StorageContext(type_storage)
-    file_name = "buckets/local-bucket/data/raw/GASTOS-2019 - Flujo de Caja MES.csv"
+    file_name = f"{path_base}/data/raw/GASTOS-2019 - Flujo de Caja MES.csv"
     range1 = [i for i in range(3, 25)]
     options = {
         'index_col': None,

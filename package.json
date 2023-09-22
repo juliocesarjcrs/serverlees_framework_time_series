@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:dev": "sls offline start"
+    "start:dev": "sls offline start",
+    "deploy": "sls deploy --aws-profile personal",
+    "remove": "sls remove  --aws-profile personal",
+    "package": "sls remove  --aws-profile personal"
   },
   "author": "",
   "devDependencies": {

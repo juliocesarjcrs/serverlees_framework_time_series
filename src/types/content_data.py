@@ -6,7 +6,7 @@ This module defines the ContentData class, which is a data class for representin
 Example:
     content = ContentData(
         file='model_fit_data',
-        directory='./buckets/local-bucket/',
+        directory='./buckets/expense-control-bucket/',
         file_name='best_model.pkl'
     )
 """

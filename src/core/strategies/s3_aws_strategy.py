@@ -12,13 +12,13 @@ class S3AwsStrategy(StorageStrategy):
         if type_file == FileType.MODEL.value:
             s3_manager = S3Manager()
             object_data = s3_manager.load_model(
-                "local-bucket", path)
+                path)
             return object_data
         elif type_file == FileType.CSV.value:
             if options is None:
                 options = {}
             s3_manager = S3Manager()
-            return s3_manager.read_csv("local-bucket", path ** options)
+            return s3_manager.read_csv(path ** options)
         else:
             # self.logger.error(
             #     f'::: type_file do not configured = {type_file} :::')
@@ -30,7 +30,7 @@ class S3AwsStrategy(StorageStrategy):
         file = content['file']
         if type_file == FileType.MODEL.value:
             s3_manager = S3Manager()
-            pass
+            s3_manager.save_model(file_name, file)
         elif type_file == FileType.CSV.value:
             s3_manager = S3Manager()
             pass

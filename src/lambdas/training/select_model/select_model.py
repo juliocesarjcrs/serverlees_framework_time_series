@@ -24,13 +24,16 @@ def select_model(query_sring_parameters: dict, body):
         _type_: _description_
     """
     type_storage = query_sring_parameters['type_storage']
+    path_base = query_sring_parameters['path_base']
+    csv_name = query_sring_parameters['csv_name']
     context = StorageContext(type_storage)
+
     options = {
         'parse_dates': True,
         'index_col': 'date',
     }
     dataframe = context.read_file(
-        FileType.CSV.value, 'buckets/local-bucket/data/processed/df_time_monthly_without_outliers.csv', options)
+        FileType.CSV.value, f'{path_base}/{csv_name}', options)
     data_processing_facade = DataProcessingFacade(dataframe)
     model_metrics = data_processing_facade.train_models_individual(
         'date', 'cost', 'M')
@@ -51,18 +54,18 @@ def select_model(query_sring_parameters: dict, body):
     model_fit = result_best_model['model_fit']
     content: ContentData = {
         'file': model_fit,
-        'directory': './buckets/local-bucket/models',
+        'directory': f'{path_base}/models',
         'file_name': 'best_model.pkl'
     }
 
     context.save_file(FileType.MODEL.value, content)
 
-    save_metrics_to_csv(context, result_best_model)
+    save_metrics_to_csv(context, result_best_model, path_base)
 
     return JsonResponse.handler_json_response({'model_metrics': model_metrics, 'best_model': data_as_dict})
 
 
-def save_metrics_to_csv(context, result_best_model: dict):
+def save_metrics_to_csv(context, result_best_model: dict, path_base:str):
     result_best_model_without_model_fit = {
         key: value for key, value in result_best_model.items() if key != 'model_fit'}
     metrics_df = pd.DataFrame(result_best_model_without_model_fit)
@@ -75,7 +78,7 @@ def save_metrics_to_csv(context, result_best_model: dict):
     df_transposed.rename(columns={'index': 'model_name'}, inplace=True)
     content: ContentData = {
         'file': df_transposed,
-        'directory': './buckets/local-bucket/models',
+        'directory': f'./{path_base}/models',
         'file_name': 'model_metrics.csv'
     }
     context.save_file(FileType.CSV.value, content)
