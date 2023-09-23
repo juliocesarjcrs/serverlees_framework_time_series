@@ -15,62 +15,43 @@ functions:
 
 resources:
   Resources:
-    NewResource:
+    S3Bucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: expense-control-bucket
-
-# layers:
-#     CommonLibsLayer:
-#         path: requirements_common.txt
-
-#     MLModelsLayer:
-#         path: requirements_ml.txt
-
-#     GraphLibsLayer:
-#         path: requirements_graph.txt
 custom:
   basePathFunctions: src/lambdas/
   pythonRequirements:
     dockerizePip: true
     usePoetry: false # No estamos usando Poetry, pero puedes habilitarlo si lo usas
     pythonBin: python3.11 # Establece el entorno local a Python 3.9
+    layer:
+      PythonRequirementsLambdaLayer:
+        name: PythonRequirementsLambdaLayer
+        description: Python requirements lambda layer
+        compatibleRuntimes:
+          - python3.11
     # layer:
-    #     PythonRequirementsLambdaLayer:
-    #         name: PythonRequirementsLambdaLayer
-    #         description: Python requirements lambda layer
-    #         compatibleRuntimes:
-    #             - python3.11
-  layers:
-    CommonLibsLambdaLayer:
-      path: requirements_common.txt
-      name: CommonLibsLambdaLayer
-      description: Common libraries lambda layer
-      compatibleRuntimes:
-        - python3.11
+    #   CommonLibsLambdaLayer:
+    #     path: requirements_common.txt
+    #     name: CommonLibsLambdaLayer
+    #     description: Common libraries lambda layer
+    #     compatibleRuntimes:
+    #       - python3.11
 
-    MLModelsLambdaLayer:
-      path: requirements_ml.txt
-      name: MLModelsLambdaLayer
-      description: ML models lambda layer
-      compatibleRuntimes:
-        - python3.11
+    #   MLModelsLambdaLayer:
+    #     path: requirements_ml.txt
+    #     name: MLModelsLambdaLayer
+    #     description: ML models lambda layer
+    #     compatibleRuntimes:
+    #       - python3.11
 
-    GraphLibsLambdaLayer:
-      path: requirements_graph.txt
-      name: GraphLibsLambdaLayer
-      description: Graph libraries lambda layer
-      compatibleRuntimes:
-        - python3.11
-  # layers:
-  #     CommonLibsLayer:
-  #         path: requirements_common.txt
-
-  #     MLModelsLayer:
-  #         path: requirements_ml.txt
-
-  #     GraphLibsLayer:
-  #         path: requirements_graph.txt
+    #   GraphLibsLambdaLayer:
+    #     path: requirements_graph.txt
+    #     name: GraphLibsLambdaLayer
+    #     description: Graph libraries lambda layer
+    #     compatibleRuntimes:
+    #       - python3.11
 
   s3:
     host: localhost
@@ -80,23 +61,13 @@ plugins:
   - serverless-python-requirements
   - serverless-offline
   - serverless-s3-local
-# package:
-#     individually: false
-#     include:
-#         - serverless.yml
-#     exclude:
-#         - node_modules/**
-#         - buckets/**
-#         - venv-py3.11/**
-#         - package.json
-#         - package-lock.json
-#         - package-lock.json
-#         - __pycache__/**
+  - serverless-iam-roles-per-function
+
 package:
   patterns:
     - "!node_modules/**"
     - "!buckets/**"
     - "!venv-py3.11/**"
     - "!__pycache__/**"
-    - "package.json"
-    - "package-lock.json"
+    - "!package.json"
+    - "!package-lock.json"

@@ -1,7 +1,13 @@
-generateProcessedData:
+generateProcessed:
   handler: src/lambdas/preprocessing/generate_processed_data/generate_processed_data.handler
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: "arn:aws:s3:::expense-control-bucket/*"
   layers:
-    - { Ref: CommonLibsLambdaLayer }
+    - { Ref: PythonRequirementsLambdaLayer }
   events:
     - http:
         method: GET

@@ -1,7 +1,13 @@
-select_model:
+selectModel:
   handler: src/lambdas/training/select_model/select_model.handler
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: "arn:aws:s3:::expense-control-bucket/*"
   layers:
-    - { Ref: CommonLibsLambdaLayer }
+    - { Ref: PythonRequirementsLambdaLayer }
   events:
     - http:
         method: POST

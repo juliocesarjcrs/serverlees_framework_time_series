@@ -1,14 +1,14 @@
-from fastapi import FastAPI
+# from fastapi import FastAPI
 from src.core.facades.prediction_facade import PredictionFacade
 from src.error.lambda_error_handler import LambdaErrorHandler
 from src.core.responses.json_response import JsonResponse
 from src.core.strategies.storage_context import StorageContext
 from src.enums.file_type import FileType
 
-app = FastAPI()
+# app = FastAPI()
 
 
-@app.get("/predict")
+# @app.get("/predict")
 def prediction(query_sring_parameters: dict):
     """ get result prediction
 

@@ -1,0 +1,7 @@
+numpy
+pandas
+requests
+joblib
+holidays
+tabulate
+# xgboost

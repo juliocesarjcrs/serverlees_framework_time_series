@@ -7,10 +7,11 @@
     "start:dev": "sls offline start",
     "deploy": "sls deploy --aws-profile personal",
     "remove": "sls remove  --aws-profile personal",
-    "package": "sls remove  --aws-profile personal"
+    "package": "sls package  --aws-profile personal"
   },
   "author": "",
   "devDependencies": {
+    "serverless-iam-roles-per-function": "^3.2.0",
     "serverless-offline": "^12.0.4",
     "serverless-python-requirements": "^6.0.0",
     "serverless-s3-local": "^0.7.2",

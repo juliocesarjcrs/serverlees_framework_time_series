@@ -15,7 +15,6 @@ class S3Manager:
     def __init__(self):
         self.bucket_name = 'expense-control-bucket'
 
-
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(S3Manager, cls).__new__(cls)
@@ -29,16 +28,13 @@ class S3Manager:
             access_key = 'S3RVER'
             secret_key = 'S3RVER'
             endpoint_url = 'http://localhost:4569'
+            return boto3.client('s3',
+                                endpoint_url=endpoint_url,
+                                aws_access_key_id=access_key,
+                                aws_secret_access_key=secret_key)
         else:
-            access_key = 'mykey'
-            secret_key = 'mysecret'
-            endpoint_url = 'http://<minio_server_ip>:9000'  # Reemplaza con la dirección real
+            return boto3.client('s3')
 
-        return boto3.client('s3',
-                            endpoint_url=endpoint_url,
-                            aws_access_key_id=access_key,
-                            aws_secret_access_key=secret_key,
-                            config=boto3.session.Config(signature_version='s3v4'))
 
     def exists(self, bucket_name):
         """
@@ -90,7 +86,8 @@ class S3Manager:
             response = self.client.get_object(
                 Bucket=self.bucket_name, Key=object_key)
             model_bytes = response['Body'].read()
-            loaded_model = joblib.load(model_bytes)
+            self.logger.info(f'::: Response Bucket ::: {response}')
+            loaded_model = joblib.load(io.BytesIO(model_bytes))
             return loaded_model
         except ClientError as exception:
             self.logger.error(f"Error reading the model from S3: {exception}")

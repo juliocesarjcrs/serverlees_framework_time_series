@@ -1,8 +1,7 @@
 import locale
 import pandas as pd
 import holidays
-import matplotlib.pyplot as plt
-from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
+# from statsmodels.tsa.deterministic import CalendarFourier, DeterministicProcess
 
 
 class TimeSeriesFeatureEngineering:
@@ -78,73 +77,30 @@ class TimeSeriesFeatureEngineering:
         return True
 
 
-    def plot_periodogram(self, ts, detrend='linear', ax=None, output_file=None):
-        from scipy.signal import periodogram
-        fs = pd.Timedelta("1Y") / pd.Timedelta("1D")
-        # fs_years = 1  # Un año
-        # fs_days = fs_years * 365.25  # Asumiendo un año promedio de 365.25 días
+    # def create_deterministic_matrix(self, data, freq="M", order=2):
+    #     """
+    #     Create a deterministic matrix with Fourier-based seasonal components.
 
-        # fs = pd.Timedelta(days=fs_days)
-        freqencies, spectrum = periodogram(
-            ts,
-            fs=fs,
-            detrend=detrend,
-            window="boxcar",
-            scaling='spectrum',
-        )
-        if ax is None:
-            _, ax = plt.subplots()
-        ax.step(freqencies, spectrum, color="purple")
-        ax.set_xscale("log")
-        ax.set_xticks([1, 2, 4, 6, 12, 26, 52, 104])
-        ax.set_xticklabels(
-            [
-                "Annual (1)",
-                "Semiannual (2)",
-                "Quarterly (4)",
-                "Bimonthly (6)",
-                "Monthly (12)",
-                "Biweekly (26)",
-                "Weekly (52)",
-                "Semiweekly (104)",
-            ],
-            rotation=30,
-        )
-        ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
-        ax.set_ylabel("Variance")
-        ax.set_title("Periodogram")
-        if output_file:
-            plt.savefig(output_file)
-            plt.close()  # Cerrar la figura para liberar memoria
-        else:
-            plt.tight_layout()
-            plt.show()
-        return ax
+    #     Parameters:
+    #     - data: pandas DataFrame or Series. The original time series data with a valid time index.
+    #     - freq: str, optional. The frequency of the seasonality (e.g., 'M' for monthly, 'Q' for quarterly).
+    #     - order: int, optional. The number of Fourier components to include.
 
-    def create_deterministic_matrix(self, data, freq="M", order=2):
-        """
-        Create a deterministic matrix with Fourier-based seasonal components.
+    #     Returns:
+    #     - X: pandas DataFrame. The deterministic matrix with seasonal components.
+    #     """
+    #     fourier = CalendarFourier(freq=freq, order=order)
+    #     dp = DeterministicProcess(
+    #         index=data.index,
+    #         constant=True,
+    #         order=1,
+    #         seasonal=True,
+    #         additional_terms=[fourier],
+    #         drop=True,
+    #     )
+    #     X = dp.in_sample()
 
-        Parameters:
-        - data: pandas DataFrame or Series. The original time series data with a valid time index.
-        - freq: str, optional. The frequency of the seasonality (e.g., 'M' for monthly, 'Q' for quarterly).
-        - order: int, optional. The number of Fourier components to include.
-
-        Returns:
-        - X: pandas DataFrame. The deterministic matrix with seasonal components.
-        """
-        fourier = CalendarFourier(freq=freq, order=order)
-        dp = DeterministicProcess(
-            index=data.index,
-            constant=True,
-            order=1,
-            seasonal=True,
-            additional_terms=[fourier],
-            drop=True,
-        )
-        X = dp.in_sample()
-
-        return X
+    #     return X
 
     def is_first_or_last_month(self, date, is_first=False):
         """

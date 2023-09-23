@@ -1,6 +1,5 @@
 import pandas as pd
 import ast
-from src.core.storage.s3Client.s3_client import S3Manager
 from src.core.training.time_series_feature_engineering import TimeSeriesFeatureEngineering
 
 

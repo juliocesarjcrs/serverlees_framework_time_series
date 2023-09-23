@@ -1,5 +1,5 @@
 from src.core.strategies.storage_strategy import StorageStrategy
-from src.core.storage.s3Client.s3_client import S3Manager
+from src.core.storage.s3Client.s3_manager import S3Manager
 from src.enums.file_type import FileType
 from src.types.content_data import ContentData
 from src.utils.logger.logger import Logger
