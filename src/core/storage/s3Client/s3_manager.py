@@ -1,6 +1,8 @@
-import boto3
-import os
+import tempfile
 import io
+import os
+import sys
+import boto3
 import joblib
 import pandas as pd
 from botocore.exceptions import ClientError
@@ -28,13 +30,13 @@ class S3Manager:
             access_key = 'S3RVER'
             secret_key = 'S3RVER'
             endpoint_url = 'http://localhost:4569'
-            return boto3.client('s3',
-                                endpoint_url=endpoint_url,
-                                aws_access_key_id=access_key,
-                                aws_secret_access_key=secret_key)
+            return boto3.client('s3'
+                                # endpoint_url=endpoint_url,
+                                # aws_access_key_id=access_key,
+                                # aws_secret_access_key=secret_key
+                                )
         else:
             return boto3.client('s3')
-
 
     def exists(self, bucket_name):
         """
@@ -83,28 +85,55 @@ class S3Manager:
 
     def load_model(self, object_key: str):
         try:
-            response = self.client.get_object(
-                Bucket=self.bucket_name, Key=object_key)
-            model_bytes = response['Body'].read()
-            self.logger.info(f'::: Response Bucket ::: {response}')
-            loaded_model = joblib.load(io.BytesIO(model_bytes))
+            temp_file_path = os.path.join(tempfile.gettempdir(), object_key)
+            object_key_path = f'models/{object_key}'
+            self.logger.info(
+                f'::: PASO 1 Load model object_key_path= {object_key_path}:::')
+
+            # Descargar el modelo desde S3 a un archivo temporal
+
+            self.client.download_file(
+                self.bucket_name, object_key_path, temp_file_path)
+
+            self.logger.info(
+                f'::: PASO 2 Download temp_file_path {temp_file_path}:::')
+            self.list_files_in_tmp()
+            self.list_installed_libraries()
+            # Cargar el modelo desde el archivo temporal
+            loaded_model = joblib.load(temp_file_path)
             return loaded_model
-        except ClientError as exception:
+
+        except Exception as exception:
             self.logger.error(f"Error reading the model from S3: {exception}")
             raise Exception("An error occurred: {}".format(exception))
+
+    def list_files_in_tmp(self):
+        tmp_dir = '/tmp'  # Directorio temporal en Lambda
+
+        # Listar los archivos en el directorio /tmp
+        file_list = os.listdir(tmp_dir)
+
+        # Imprimir la lista de archivos
+        for file_name in file_list:
+            print(file_name)
 
     def read_csv(self, object_key: str, **kwargs):
         try:
             response = self.client.get_object(
                 Bucket=self.bucket_name, Key=object_key)
             csv_bytes = response['Body'].read()
+
             csv_str = csv_bytes.decode('utf-8')
             dataframe = pd.read_csv(io.StringIO(csv_str), **kwargs)
             return dataframe
-        except ClientError as exception:
+        except Exception as exception:
             self.logger.error(
                 f"Error reading the CSV file from S3:: {exception}")
             raise Exception("An error occurred: {}".format(exception))
+        # except ClientError as exception:
+        #     self.logger.error(
+        #         f"Error reading the CSV file from S3:: {exception}")
+        #     raise Exception("An error occurred: {}".format(exception))
 
     def save_model(self, object_key: str, model):
         try:
@@ -131,3 +160,8 @@ class S3Manager:
         except ClientError as exception:
             self.logger.error(f"Error saving the model to S3: {exception}")
             raise Exception("An error occurred: {}".format(exception))
+
+    def list_installed_libraries(self):
+        installed_libraries = sys.modules.keys()
+        for library in installed_libraries:
+            print(library)

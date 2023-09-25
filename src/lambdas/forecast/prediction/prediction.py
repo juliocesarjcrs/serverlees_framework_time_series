@@ -21,14 +21,18 @@ def prediction(query_sring_parameters: dict):
     type_storage = query_sring_parameters['type_storage']
     months_to_predict = query_sring_parameters['months_to_predict']
     path_base = query_sring_parameters['path_base']
+    name_model = query_sring_parameters['name_model']
     context = StorageContext(type_storage)
 
     model_loaded = context.read_file(
-        FileType.MODEL.value, f'{path_base}/best_model.pkl')
+        FileType.MODEL.value, name_model)
+    if not model_loaded:
+        raise ValueError("Model undefined")
 
     prediction_facade = PredictionFacade(model_loaded)
 
     parameters_training = read_model_metrics(context, path_base)
+
     params_model = params_model = {'months_to_predict': months_to_predict,
                                    'train_columns': parameters_training}
     response_data = prediction_facade.predict(params_model)
@@ -42,6 +46,7 @@ def read_model_metrics(context, path_base):
     }
     model_metrics_df = context.read_file(
         FileType.CSV.value, f'{path_base}/model_metrics.csv', options)
+    print(model_metrics_df)
     if "Unnamed: 0" in model_metrics_df.columns:
         model_metrics_df.drop(columns=["Unnamed: 0"], inplace=True)
     # Convertir 'Key' en índice para facilitar el acceso.
