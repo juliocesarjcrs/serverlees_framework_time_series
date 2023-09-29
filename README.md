@@ -129,3 +129,10 @@ serverless wsgi serve
 ```
 
 For additional local development capabilities of `serverless-wsgi` plugin, please refer to corresponding [GitHub repository](https://github.com/logandk/serverless-wsgi).
+
+
+### FastAPi Local development
+
+```bash
+uvicorn src.main:app --reload
+```

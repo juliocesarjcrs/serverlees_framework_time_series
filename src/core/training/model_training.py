@@ -203,7 +203,8 @@ class ModelTraining:
                 'model_name': model_name,
                 'model_fit': fitted_model,
                 'metrics': metrics,
-                'parameters_training': parameters
+                'parameters_training': parameters,
+                'start_date_test': test_x.index[0].strftime('%Y-%m-%d')
             }, y_pred
 
         except Exception as exception:

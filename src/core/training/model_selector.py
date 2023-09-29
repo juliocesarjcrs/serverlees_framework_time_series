@@ -32,7 +32,6 @@ Example:
 
     analyzer = ModelSelector()
     summary = analyzer.analyze_model_metrics_summary(metrics, weights)
-    print(summary)
 """
 from typing import List, Dict, Union
 import pandas as pd
@@ -77,7 +76,6 @@ class ModelSelector:
 
         analyzer = ModelSelector()
         summary = analyzer.analyze_model_metrics_summary(metrics, weights)
-        print(summary)
     """
 
     def analyze_model_metrics_summary(self, metrics: List[Dict[str, Union[float, Dict[str, float]]]], weights: Dict[str, int]) -> pd.DataFrame:
@@ -126,7 +124,6 @@ class ModelSelector:
 
             analyzer = ModelSelector()
             summary = analyzer.analyze_model_metrics_summary(metrics, weights)
-            print(summary)
         """
         # Create a DataFrame from the list of metrics
         results_df = pd.DataFrame(metrics)

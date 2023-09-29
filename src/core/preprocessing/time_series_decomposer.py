@@ -8,7 +8,7 @@ from src.utils.logger.logger import Logger
 
 class TimeSeriesDecomposer:
     def __init__(self, utils):
-        self.logger = Logger("ModelTraining")
+        self.logger = Logger("TimeSeriesDecomposer")
 
     # def decompose_time_series():
 

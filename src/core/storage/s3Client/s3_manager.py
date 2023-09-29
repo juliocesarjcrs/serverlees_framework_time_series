@@ -115,7 +115,7 @@ class S3Manager:
 
         # Imprimir la lista de archivos
         for file_name in file_list:
-            print(file_name)
+            self.logger.info(file_name)
 
     def read_csv(self, object_key: str, **kwargs):
         try:
@@ -164,4 +164,4 @@ class S3Manager:
     def list_installed_libraries(self):
         installed_libraries = sys.modules.keys()
         for library in installed_libraries:
-            print(library)
+            self.logger.info(library)

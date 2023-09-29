@@ -1,11 +1,11 @@
+from fastapi import FastAPI
+from src.lambdas.forecast.prediction import prediction
+from src.lambdas.preprocessing.generate_processed_data import generate_processed_data
+from src.lambdas.training.select_model import select_model
 
-from core.facades.data_processing_facade import DataProcessingFacade
-import argparse
+app = FastAPI()
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Procesamiento de datos')
-    parser.add_argument('--type_process', type=str, required=True, choices=['TRAIN_EVALUATE', 'TRAIN_AND_EVALUATE_INDIVIDUAL_SERIES', 'SELECT_MODEL', 'EXPLORATION_DATA_ANALYSIS'], help='Tipo de proceso')
-    args = parser.parse_args()
-
-    facade = DataProcessingFacade()
-    facade.run(args.type_process)
+# Monta las rutas definidas en los otros archivos
+app.include_router(prediction.router)
+app.include_router(generate_processed_data.router)
+app.include_router(select_model.router)

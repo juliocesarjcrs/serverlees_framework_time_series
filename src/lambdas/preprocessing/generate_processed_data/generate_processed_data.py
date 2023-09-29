@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import APIRouter
 from src.core.facades.data_processing_facade import DataProcessingFacade
 from src.error.lambda_error_handler import LambdaErrorHandler
 from src.core.responses.json_response import JsonResponse
@@ -10,11 +10,23 @@ from src.enums.file_type import FileType
 from src.types.content_data import ContentData
 
 
-app = FastAPI()
+router = APIRouter()
 
 
-@app.get("/preprocessing/generate-processed-data")
-def generate_processed_data(query_sring_parameters: dict, body):
+@router.get("/preprocessing/generate-processed-data")
+def generate_processed_data(type_storage: str, path_base: str):
+    """ get result prediction
+
+    Args:
+        event (any): event lambda function
+
+    Returns:
+        _type_: _description_
+    """
+    anomalies = procesed_raw_data(type_storage, path_base)
+
+    return {'anomalies': anomalies.to_dict(orient='records')}
+def generate_processed_data_handler(query_sring_parameters: dict, body):
     """ get result prediction
 
     Args:
@@ -25,6 +37,12 @@ def generate_processed_data(query_sring_parameters: dict, body):
     """
     type_storage = query_sring_parameters['type_storage']
     path_base = query_sring_parameters['path_base']
+    anomalies = procesed_raw_data(type_storage, path_base)
+ 
+
+    return JsonResponse.handler_json_response({'anomalies': anomalies.to_dict(orient='records')})
+
+def procesed_raw_data(type_storage, path_base):
     context = StorageContext(type_storage)
     options = {
         'parse_dates': ["date"],
@@ -52,9 +70,7 @@ def generate_processed_data(query_sring_parameters: dict, body):
     }
 
     context.save_file(FileType.CSV.value, content)
-
-    return JsonResponse.handler_json_response({'anomalies': anomalies.to_dict(orient='records')})
-
+    return anomalies
 
 def load_historical_data(type_storage: str, path_base:str) -> pd.DataFrame:
     context = StorageContext(type_storage)
@@ -94,7 +110,7 @@ def handler(event: dict, context: dict):
         if not query_sring_parameters:
             raise ValueError("queryStringParameters undefined")
         body = event['body']
-        return generate_processed_data(query_sring_parameters, body)
+        return generate_processed_data_handler(query_sring_parameters, body)
 
     except Exception as exception:
         error_response = LambdaErrorHandler.handle_error(exception)

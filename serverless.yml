@@ -10,8 +10,8 @@ provider:
 
 functions:
   - ${file(./${self:custom.basePathFunctions}/forecast/functions.yml), ''}
-  - ${file(./${self:custom.basePathFunctions}/training/functions.yml), ''}
-  - ${file(./${self:custom.basePathFunctions}/preprocessing/functions.yml), ''}
+  # - ${file(./${self:custom.basePathFunctions}/training/functions.yml), ''}
+  # - ${file(./${self:custom.basePathFunctions}/preprocessing/functions.yml), ''}
 
 resources:
   Resources:
@@ -19,18 +19,42 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: expense-control-bucket
+
+layers:
+  pandasLib:
+    name: PandasLibLambdaLayer
+    package:
+      artifact: layers/pandas/pandas.zip
+    # path: layers/pandas
+
+  commonLibs:
+    name: CommonLibsLambdaLayer
+    package:
+      artifact: layers/common/common.zip
+  #   path: layers/common # Carpeta donde se encuentra el archivo 'requirements.txt' de la capa
+  #   description: Common libraries lambda layer
+  #   compatibleRuntimes:
+  #     - python3.11
+  # MlModels:
+  #   name: MlModelsLambdaLayer
+  #   package:
+  #     artifact: layers/ml_models/sklearn.zip
+#     path: layers/ml_models/requirements_ml.txt
+#     description: ML models lambda layer
+#     compatibleRuntimes:
+#       - python3.11
 custom:
   basePathFunctions: src/lambdas/
-  pythonRequirements:
-    dockerizePip: true
-    usePoetry: false # No estamos usando Poetry, pero puedes habilitarlo si lo usas
-    pythonBin: python3.11 # Establece el entorno local a Python 3.9
-    layer:
-      PythonRequirementsLambdaLayer:
-        name: PythonRequirementsLambdaLayer
-        description: Python requirements lambda layer
-        compatibleRuntimes:
-          - python3.11
+  # pythonRequirements:
+  #   dockerizePip: true
+  #   usePoetry: false # No estamos usando Poetry, pero puedes habilitarlo si lo usas
+  #   pythonBin: python3.11 # Establece el entorno local a Python 3.9
+  #   layer:
+  #     PythonRequirementsLambdaLayer:
+  #       name: PythonRequirementsLambdaLayer
+  #       description: Python requirements lambda layer
+  #       compatibleRuntimes:
+  #         - python3.11
     # layer:
     #   CommonLibsLambdaLayer:
     #     path: requirements_common.txt
@@ -67,6 +91,7 @@ package:
   patterns:
     - "!node_modules/**"
     - "!buckets/**"
+    - "!layers/**"
     - "!venv-py3.11/**"
     - "!__pycache__/**"
     - "!package.json"
