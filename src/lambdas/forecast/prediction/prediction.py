@@ -29,12 +29,12 @@ def prediction(type_storage: str, months_to_predict: int, path_base: str, name_m
 
         prediction_facade = PredictionFacade(model_loaded)
 
-        train_columns, start_date_test  = read_model_metrics(context, path_base)
+        train_columns, start_date_test = read_model_metrics(context, path_base)
 
         params_model = {'months_to_predict': months_to_predict,
-                                    'train_columns': train_columns,
-                                    'start_date_test' : start_date_test
-                                    }
+                        'train_columns': train_columns,
+                        'start_date_test': start_date_test
+                        }
         response_data = prediction_facade.predict(params_model)
         return response_data
 
@@ -65,10 +65,12 @@ def prediction_handler(query_sring_parameters: dict):
 
     prediction_facade = PredictionFacade(model_loaded)
 
-    parameters_training = read_model_metrics(context, path_base)
+    train_columns, start_date_test = read_model_metrics(context, path_base)
 
-    params_model = params_model = {'months_to_predict': months_to_predict,
-                                   'train_columns': parameters_training}
+    params_model = {'months_to_predict': months_to_predict,
+                    'train_columns': train_columns,
+                    'start_date_test': start_date_test
+                    }
     response_data = prediction_facade.predict(params_model)
     return JsonResponse.handler_json_response(response_data)
 
@@ -80,10 +82,17 @@ def read_model_metrics(context, path_base):
     }
     model_metrics_df = context.read_file(
         FileType.CSV.value, f'{path_base}/model_metrics.csv', options)
-    if "Unnamed: 0" in model_metrics_df.columns:
-        model_metrics_df.drop(columns=["Unnamed: 0"], inplace=True)
-    # Convertir 'Key' en índice para facilitar el acceso.
-    return model_metrics_df.loc[2, 'train_columns'], model_metrics_df.loc[3, 'train_columns']
+    parameters_training_str = model_metrics_df['parameters_training'].iloc[0]
+
+    parameters_training_dict = eval(parameters_training_str)
+    train_columns = parameters_training_dict.get('train_columns', [])
+
+    start_date_test = model_metrics_df['start_date_test'].iloc[0]
+    return train_columns, start_date_test
+    # if "Unnamed: 0" in model_metrics_df.columns:
+    #     model_metrics_df.drop(columns=["Unnamed: 0"], inplace=True)
+    # # Convertir 'Key' en índice para facilitar el acceso.
+    # return model_metrics_df.loc[2, 'train_columns'], model_metrics_df.loc[3, 'train_columns']
 
 
 def handler(event: dict, context: dict):

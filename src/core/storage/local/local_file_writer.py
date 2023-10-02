@@ -54,7 +54,7 @@ class LocalFileWriter:
                 f'::: Directory does not exist, it will be created ::: {self.directory}')
             os.mkdir(self.directory)
 
-    def save_dataframe_as_csv(self, file_name: str, dataframe: pd.DataFrame):
+    def save_dataframe_as_csv(self, file_name: str, dataframe: pd.DataFrame, **kwargs):
         """
         Save a DataFrame to a CSV file while preserving the index and date frequency.
 
@@ -67,4 +67,5 @@ class LocalFileWriter:
             None
         """
         file_path_to_save = os.path.join(self.directory, file_name)
-        dataframe.to_csv(file_path_to_save, index=True, date_format='%Y-%m-%d')
+        # dataframe.to_csv(file_path_to_save, index=True, date_format='%Y-%m-%d')
+        dataframe.to_csv(file_path_to_save, **kwargs)

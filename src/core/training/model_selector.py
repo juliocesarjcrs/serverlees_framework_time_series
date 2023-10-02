@@ -86,13 +86,15 @@ class ModelSelector:
             metrics (List[Dict[str, Union[float, Dict[str, float]]]]): A list of dictionaries containing model metrics information.
                 Each dictionary should have the following keys:
                 - 'model_name': The name of the model.
+                - 'dataset_name': The name of the dataset.
                 - 'metrics': A dictionary with specific metrics such as 'RMSE', 'MAE', 'R2', 'MAPE', and 'SMAPE'.
             weights (Dict[str, int]): A dictionary containing weights for the metrics. Keys should match the metrics ('RMSE', 'MAE', 'R2', 'MAPE', and 'SMAPE').
 
         Returns:
-            pd.DataFrame: A DataFrame containing the summary of weighted metrics for each model.
+            pd.DataFrame: A DataFrame containing the summary of weighted metrics for each model and dataset.
                 The DataFrame has the following columns:
                 - 'model_name': The name of the model.
+                - 'dataset_name': The name of the dataset.
                 - 'weighted_metric': The calculated weighted metric based on the provided weights.
 
         Example:
@@ -145,7 +147,7 @@ class ModelSelector:
         )
 
         # Group by 'model_name' and calculate the mean of weighted metrics
-        summary_df = results_df.groupby(['model_name']).agg(
+        summary_df = results_df.groupby(['model_name', 'dataset_name']).agg(
             {'weighted_metric': 'mean'}).reset_index()
 
         # Sort the DataFrame by weighted metric in ascending order

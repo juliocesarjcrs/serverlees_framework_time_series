@@ -65,14 +65,33 @@ class ModelTraining:
     def get_names_folder(self):
         return self.names_folder
 
+    def set_dataset(self, params):
+         self.datasets.append(params)
+
+    def reset_dataset(self):
+         self.datasets = []
+
+    def reset_models(self):
+         self.models = []
+
     def set_individual_dataset(self, dataframe: pd.DataFrame, target_col: str):
-        X = dataframe.drop(target_col, axis=1)
+        x = dataframe.drop(target_col, axis=1)
         y = dataframe[target_col]
         self.datasets = [
-            {'name': 'Normal', 'train_ratio': 0.8, 'X': X, 'y': y},
+            {'name': 'Normal', 'train_ratio': 0.8, 'X': x, 'y': y},
             # {'name': 'Without Outliers', 'train_ratio': 0.8, 'X': X_without_outliers, 'y': y_without_outliers}
             # Add more datasets if needed
         ]
+
+        # self.datasets = []
+
+        # # Conjunto de datos normal
+        # self.datasets.append({'name': 'Normal', 'train_ratio': 0.8, 'X':x, 'y': y})
+
+        # # Conjunto de datos sin valores atípicos (si es necesario)
+        # X_without_outliers, y_without_outliers = self.remove_outliers(X, y)  # Define esta función según tus necesidades
+        # self.datasets.append({'name': 'Without Outliers', 'train_ratio': 0.8, 'X': X_without_outliers, 'y': y_without_outliers})
+
 
     def train_and_evaluate(self, target_col, with_model: bool = False):
         for dataset in self.datasets:
@@ -85,7 +104,7 @@ class ModelTraining:
                 train_y, test_y = self.split_train_test_data(
                     dataset['y'], train_ratio)
 
-                result, y_pred = self.evaluate_model(
+                result, y_pred = self.evaluate_model(dataset_name,
                     model_name, model, train_x, train_y, test_x, test_y, target_col)
                 if with_model:
                     return result
@@ -163,7 +182,7 @@ class ModelTraining:
         else:
             raise ValueError(f'Undefined type of model: ${model_name}')
 
-    def evaluate_model(self, model_name, model, train_x, train_y, test_x, test_y, target_col, is_individual=True):
+    def evaluate_model(self, dataset_name: str, model_name: str, model, train_x, train_y, test_x, test_y, target_col, is_individual=True):
         try:
             self.logger.info(f"::: START FIT MODEL {model_name} :::")
             fitted_model, parameters = self.fit_model(
@@ -200,6 +219,7 @@ class ModelTraining:
                     train_y, test_y, y_pred, '/code/reports/graficas_modelos', names_folder, f'Serie Tiempo - {model_name}')
 
             return {
+                'dataset_name': dataset_name,
                 'model_name': model_name,
                 'model_fit': fitted_model,
                 'metrics': metrics,

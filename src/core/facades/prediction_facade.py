@@ -43,7 +43,6 @@ class PredictionFacade:
 
         # Define the number of months
         column_order = params_model['train_columns']
-        column_order = ast.literal_eval(column_order)
 
         # Convert the start date to a datetime object
         start_date = pd.to_datetime(start_date_test)

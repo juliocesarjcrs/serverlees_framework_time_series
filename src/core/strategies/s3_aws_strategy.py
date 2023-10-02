@@ -27,7 +27,7 @@ class S3AwsStrategy(StorageStrategy):
                 raise ValueError('S3AwsStrategy: type_file do not configured')
         except Exception as exception:
               self.logger.error(f'::: exception = {exception} :::')
-    def save(self, type_file: FileType, content: ContentData):
+    def save(self, type_file: FileType, content: ContentData, options=None):
         path = content['directory']
         file_name = content['file_name']
         file = content['file']

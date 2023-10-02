@@ -48,6 +48,6 @@ class TimeSeriesOutlierDetector:
         std = data[column].std()
         threshold = threshold_factor * std
         anomalies = data[data[column].abs() - mean > threshold]
-        self.logger.info(f"::: Anomalies ::: ${anomalies}")
+        self.logger.info(f"::: Anomalies ::: {anomalies}")
 
         return anomalies

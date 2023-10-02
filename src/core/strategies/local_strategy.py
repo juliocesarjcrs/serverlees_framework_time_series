@@ -19,7 +19,9 @@ class LocalStrategy(StorageStrategy):
         else:
             raise ValueError('type_file do not configured')
 
-    def save(self, type_file: FileType, content: ContentData):
+    def save(self, type_file: FileType, content: ContentData, options=None):
+        if options is None:
+            options = {}
         path = content['directory']
         file_name = content['file_name']
         file = content['file']
@@ -28,6 +30,6 @@ class LocalStrategy(StorageStrategy):
             return file_writer.save_model(file_name, file)
         elif type_file == FileType.CSV.value:
             file_writer = LocalFileWriter(path)
-            return file_writer.save_dataframe_as_csv(file_name, file)
+            return file_writer.save_dataframe_as_csv(file_name, file, **options)
         else:
             raise ValueError('type_file do not configured')

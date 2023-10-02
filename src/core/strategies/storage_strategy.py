@@ -8,5 +8,5 @@ class StorageStrategy(ABC):
     def read(self, type_file: FileType, path: str, options: None):
         pass
 
-    def save(self, type_file: FileType, content: ContentData):
+    def save(self, type_file: FileType, content: ContentData, options=None):
         pass

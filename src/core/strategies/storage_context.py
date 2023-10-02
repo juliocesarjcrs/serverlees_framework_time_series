@@ -59,7 +59,7 @@ class StorageContext:
                 options = {}
         return self.strategy.read(type_file, path, options=options)
 
-    def save_file(self, type_file: FileType, content: ContentData):
+    def save_file(self, type_file: FileType, content: ContentData, options= None):
         """
         Saves a file to the selected storage strategy.
 
@@ -71,4 +71,6 @@ class StorageContext:
         Returns:
             str: A message indicating the success or failure of the save operation.
         """
-        return self.strategy.save(type_file, content)
+        if options is None:
+            options = {}
+        return self.strategy.save(type_file, content, options=options)
