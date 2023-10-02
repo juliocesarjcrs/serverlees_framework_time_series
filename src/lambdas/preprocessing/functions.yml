@@ -12,3 +12,18 @@ generateProcessed:
     - http:
         method: GET
         path: preprocessing/generate-processed-data
+
+getLastData:
+  handler: src/lambdas/preprocessing/get_last_data/get_last_data.handler
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: "arn:aws:s3:::expense-control-bucket/*"
+  layers:
+    - { Ref: PythonRequirementsLambdaLayer }
+  events:
+    - http:
+        method: POST
+        path: preprocessing/last-data

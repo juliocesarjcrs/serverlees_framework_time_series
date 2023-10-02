@@ -1,3 +1,4 @@
+import pandas as pd
 from src.enums.file_type import FileType
 from src.core.strategies.storage_strategy import StorageStrategy
 from src.types.content_data import ContentData
@@ -24,12 +25,18 @@ class LocalStrategy(StorageStrategy):
             options = {}
         path = content['directory']
         file_name = content['file_name']
-        file = content['file']
+        file_send = content['file']
         if type_file == FileType.MODEL.value:
             file_writer = LocalFileWriter(path)
-            return file_writer.save_model(file_name, file)
+            return file_writer.save_model(file_name, file_send)
         elif type_file == FileType.CSV.value:
             file_writer = LocalFileWriter(path)
-            return file_writer.save_dataframe_as_csv(file_name, file, **options)
+            if isinstance(file_send, pd.DataFrame):
+                return file_writer.save_dataframe_as_csv(file_name, file_send, **options)
+            elif  isinstance(file_send, bytes):
+                return file_writer.save_binary_data_as_csv(file_name, file_send, **options)
+            else:
+                raise ValueError('content is not pd.Dataframe or binary')
+
         else:
             raise ValueError('type_file do not configured')

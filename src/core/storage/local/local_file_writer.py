@@ -1,6 +1,7 @@
 import os
 import joblib
 import pandas as pd
+from io import StringIO
 from src.utils.logger.logger import Logger
 
 
@@ -67,5 +68,32 @@ class LocalFileWriter:
             None
         """
         file_path_to_save = os.path.join(self.directory, file_name)
-        # dataframe.to_csv(file_path_to_save, index=True, date_format='%Y-%m-%d')
+        dataframe.to_csv(file_path_to_save, **kwargs)
+
+    def save_binary_data_as_csv(self, file_name: str, binary_data: bytes, **kwargs):
+        """
+        Save binary data as CSV after decoding it to UTF-8.
+
+        Args:
+            file_path (str): The full path (including filename) where the CSV file will be saved.
+            binary_data (bytes): Binary data to be decoded and saved as CSV.
+            **kwargs: Other keyword arguments to pass to DataFrame.to_csv.
+
+        Returns:
+            None
+        """
+        # Decodifica los bytes a una cadena de caracteres (UTF-8)
+        csv_content = binary_data.decode('utf-8')
+
+        # Crear un objeto StringIO
+        csv_io = StringIO(csv_content)
+
+        # Leer el contenido CSV en un DataFrame
+        dataframe = pd.read_csv(csv_io)
+
+        # Verifica si el directorio existe, y si no, créalo
+        # os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # Guarda el DataFrame en el archivo CSV especificado
+        file_path_to_save = os.path.join(self.directory, file_name)
         dataframe.to_csv(file_path_to_save, **kwargs)

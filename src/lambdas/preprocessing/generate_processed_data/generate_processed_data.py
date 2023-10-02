@@ -44,12 +44,12 @@ def generate_processed_data_handler(query_sring_parameters: dict, body):
 
 def procesed_raw_data(type_storage, path_base):
     context = StorageContext(type_storage)
-    options = {
+    options_to_save = {
         'parse_dates': ["date"],
         'usecols': [1, 5],
     }
     expenses_df = context.read_file(
-        FileType.CSV.value, f'{path_base}/data/raw/expenses.csv', options)
+        FileType.CSV.value, f'{path_base}/data/raw/expenses.csv', options_to_save)
     expenses_df['date'] = expenses_df['date'].dt.tz_localize(None)
     df_history = load_historical_data(type_storage, path_base)
     processed_df = pd.concat([expenses_df, df_history], ignore_index=True)
@@ -57,6 +57,19 @@ def procesed_raw_data(type_storage, path_base):
     resampled_data = processed_df.resample('M').cost.sum()
     resampled_data.drop(resampled_data.tail(1).index, inplace=True)
     df_time = resampled_data.to_frame()
+    content: ContentData = {
+        'file': df_time,
+        'directory': f'{path_base}/data/processed',
+        'file_name': 'df_time_monthly.csv'
+    }
+    options_to_save = {
+        'index': True,
+        'date_format': '%Y-%m-%d'
+    }
+
+    context.save_file(FileType.CSV.value, content, options_to_save)
+
+    #---------------------Save witout outliers -----------------
 
     data_processing_facade = DataProcessingFacade(df_time)
     df_time_without_outlier, anomalies = data_processing_facade.get_data_without_outliers(
@@ -69,7 +82,7 @@ def procesed_raw_data(type_storage, path_base):
         'file_name': 'df_time_monthly_without_outliers.csv'
     }
 
-    context.save_file(FileType.CSV.value, content)
+    context.save_file(FileType.CSV.value, content, options_to_save)
     return anomalies
 
 def load_historical_data(type_storage: str, path_base:str) -> pd.DataFrame:
