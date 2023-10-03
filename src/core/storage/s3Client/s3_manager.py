@@ -8,7 +8,7 @@ import pandas as pd
 from io import StringIO, BytesIO
 from botocore.exceptions import ClientError
 from src.utils.logger.logger import Logger
-
+from src.environments.settings import BUCKET_NAME, AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
 
 class S3Manager:
     _instance = None
@@ -16,7 +16,7 @@ class S3Manager:
     logger = Logger("S3Manager")
 
     def __init__(self):
-        self.bucket_name = 'expense-control-bucket'
+        self.bucket_name = BUCKET_NAME
 
     def __new__(cls):
         if cls._instance is None:
@@ -37,8 +37,8 @@ class S3Manager:
                                 # aws_secret_access_key=secret_key
                                 )
         else:
-            aws_access_key_id = ''
-            aws_secret_access_key = ''
+            aws_access_key_id = AWS_ACCESS_KEY_ID
+            aws_secret_access_key = AWS_SECRET_ACCESS_KEY
             return boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
 
     def exists(self, bucket_name):
