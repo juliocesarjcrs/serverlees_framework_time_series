@@ -64,9 +64,10 @@ def getLastExpense(access_token: str, url_ext: str, type_storage: str, path_base
     response = requests.get(url, headers=headers)
     context = StorageContext(type_storage)
     if response.status_code == 200:
+        directory = f"./{path_base}/data/raw" if path_base else "data/raw"
         content: ContentData = {
             'file': response.content,
-            'directory': f'./{path_base}/data/raw',
+            'directory': directory,
             'file_name': 'expenses.csv'
         }
         options_to_save = {

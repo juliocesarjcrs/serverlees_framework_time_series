@@ -48,18 +48,23 @@ def procesed_raw_data(type_storage, path_base):
         'parse_dates': ["date"],
         'usecols': [1, 5],
     }
+    directory = f'{path_base}/data/raw/expenses.csv' if path_base else "data/raw/expenses.csv"
     expenses_df = context.read_file(
-        FileType.CSV.value, f'{path_base}/data/raw/expenses.csv', options_to_save)
+        FileType.CSV.value, directory , options_to_save)
     expenses_df['date'] = expenses_df['date'].dt.tz_localize(None)
+
     df_history = load_historical_data(type_storage, path_base)
+
     processed_df = pd.concat([expenses_df, df_history], ignore_index=True)
     processed_df.set_index('date', inplace=True)
     resampled_data = processed_df.resample('M').cost.sum()
     resampled_data.drop(resampled_data.tail(1).index, inplace=True)
     df_time = resampled_data.to_frame()
+    directory_to_save = f'{path_base}/data/processed'if path_base else "data/processed"
+
     content: ContentData = {
         'file': df_time,
-        'directory': f'{path_base}/data/processed',
+        'directory': directory_to_save,
         'file_name': 'df_time_monthly.csv'
     }
     options_to_save = {
@@ -78,7 +83,7 @@ def procesed_raw_data(type_storage, path_base):
     anomalies['date'] = anomalies['date'].dt.strftime('%Y-%m-%d')
     content: ContentData = {
         'file': df_time_without_outlier,
-        'directory': f'{path_base}/data/processed',
+        'directory': directory_to_save,
         'file_name': 'df_time_monthly_without_outliers.csv'
     }
 
@@ -87,7 +92,8 @@ def procesed_raw_data(type_storage, path_base):
 
 def load_historical_data(type_storage: str, path_base:str) -> pd.DataFrame:
     context = StorageContext(type_storage)
-    file_name = f"{path_base}/data/raw/GASTOS-2019 - Flujo de Caja MES.csv"
+    directory_load_historical = f"{path_base}/data/raw/GASTOS-2019 - Flujo de Caja MES.csv" if path_base else "data/raw/GASTOS-2019 - Flujo de Caja MES.csv"
+    file_name = directory_load_historical
     range1 = [i for i in range(3, 25)]
     options = {
         'index_col': None,

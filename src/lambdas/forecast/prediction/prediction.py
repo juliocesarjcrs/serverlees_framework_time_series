@@ -76,7 +76,6 @@ def prediction_handler(query_sring_parameters: dict):
 
 
 def read_model_metrics(context, path_base):
-    # get metrics
     options = {
         'index_col': False,
     }
@@ -89,10 +88,6 @@ def read_model_metrics(context, path_base):
 
     start_date_test = model_metrics_df['start_date_test'].iloc[0]
     return train_columns, start_date_test
-    # if "Unnamed: 0" in model_metrics_df.columns:
-    #     model_metrics_df.drop(columns=["Unnamed: 0"], inplace=True)
-    # # Convertir 'Key' en índice para facilitar el acceso.
-    # return model_metrics_df.loc[2, 'train_columns'], model_metrics_df.loc[3, 'train_columns']
 
 
 def handler(event: dict, context: dict):

@@ -102,9 +102,10 @@ def process_models_datasets(type_storage: str, path_base: str, body: SelectModel
 
     result_best_model = model_training.train_and_evaluate(target_col, True)
     model_fit = result_best_model['model_fit']
+    directory_to_save = f'{path_base}/models'if path_base else "models"
     content: ContentData = {
         'file': model_fit,
-        'directory': f'{path_base}/models',
+        'directory': directory_to_save,
         'file_name': 'best_model.pkl'
     }
 
@@ -130,8 +131,9 @@ def establish_datasets(datasets_to_train: list[datasetToTrain], path_base: str, 
             'parse_dates': True,
             'index_col': 'date'
         }
+        file_name = f'{path_base}/{path_database}' if path_base else path_database
         dataframe = context.read_file(
-            FileType.CSV.value, f'{path_base}/{path_database}', options)
+            FileType.CSV.value, file_name, options)
         processed_df = add_complete_features_enginiering(dataframe)
         x_data = processed_df.drop(target_col, axis=1)
         y_data = processed_df[target_col]
@@ -144,9 +146,10 @@ def save_metrics_to_csv(context, result_best_model: dict, path_base: str):
 
     # Guardar el diccionario modificado en un archivo CSV
     df_metrics = pd.DataFrame([result_best_model])
+    directory_to_save = f'{path_base}/models'if path_base else "models"
     content: ContentData = {
         'file': df_metrics,
-        'directory': f'./{path_base}/models',
+        'directory': directory_to_save,
         'file_name': 'model_metrics.csv'
     }
     options_to_save = {
