@@ -9,12 +9,11 @@ from src.core.training.model_selector import ModelSelector
 from src.enums.file_type import FileType
 from src.types.content_data import ContentData
 
-
 router = APIRouter()
 
 
 @router.get("/preprocessing/generate-processed-data")
-def generate_processed_data(type_storage: str, path_base: str):
+def generate_processed_data(type_storage: str, path_base: str, anomaly_detection_method: str):
     """ get result prediction
 
     Args:
@@ -23,9 +22,11 @@ def generate_processed_data(type_storage: str, path_base: str):
     Returns:
         _type_: _description_
     """
-    anomalies = procesed_raw_data(type_storage, path_base)
+    anomalies = procesed_raw_data(type_storage, path_base, anomaly_detection_method)
 
     return {'anomalies': anomalies.to_dict(orient='records')}
+
+
 def generate_processed_data_handler(query_sring_parameters: dict, body):
     """ get result prediction
 
@@ -37,12 +38,13 @@ def generate_processed_data_handler(query_sring_parameters: dict, body):
     """
     type_storage = query_sring_parameters['type_storage']
     path_base = query_sring_parameters['path_base']
-    anomalies = procesed_raw_data(type_storage, path_base)
- 
+    anomaly_detection_method = query_sring_parameters['anomaly_detection_method']
+    anomalies = procesed_raw_data(type_storage, path_base, anomaly_detection_method)
 
     return JsonResponse.handler_json_response({'anomalies': anomalies.to_dict(orient='records')})
 
-def procesed_raw_data(type_storage, path_base):
+
+def procesed_raw_data(type_storage, path_base: str, anomaly_detection_method: str):
     context = StorageContext(type_storage)
     options_to_save = {
         'parse_dates': ["date"],
@@ -50,7 +52,7 @@ def procesed_raw_data(type_storage, path_base):
     }
     directory = f'{path_base}/data/raw/expenses.csv' if path_base else "data/raw/expenses.csv"
     expenses_df = context.read_file(
-        FileType.CSV.value, directory , options_to_save)
+        FileType.CSV.value, directory, options_to_save)
     expenses_df['date'] = expenses_df['date'].dt.tz_localize(None)
 
     df_history = load_historical_data(type_storage, path_base)
@@ -74,11 +76,11 @@ def procesed_raw_data(type_storage, path_base):
 
     context.save_file(FileType.CSV.value, content, options_to_save)
 
-    #---------------------Save witout outliers -----------------
+    # ---------------------Save witout outliers -----------------
 
     data_processing_facade = DataProcessingFacade(df_time)
     df_time_without_outlier, anomalies = data_processing_facade.get_data_without_outliers(
-        'cost')
+        'cost', anomaly_detection_method)
     anomalies.reset_index(inplace=True)
     anomalies['date'] = anomalies['date'].dt.strftime('%Y-%m-%d')
     content: ContentData = {
@@ -90,7 +92,8 @@ def procesed_raw_data(type_storage, path_base):
     context.save_file(FileType.CSV.value, content, options_to_save)
     return anomalies
 
-def load_historical_data(type_storage: str, path_base:str) -> pd.DataFrame:
+
+def load_historical_data(type_storage: str, path_base: str) -> pd.DataFrame:
     context = StorageContext(type_storage)
     directory_load_historical = f"{path_base}/data/raw/GASTOS-2019 - Flujo de Caja MES.csv" if path_base else "data/raw/GASTOS-2019 - Flujo de Caja MES.csv"
     file_name = directory_load_historical

@@ -33,7 +33,6 @@ class StorageContext:
         """
         try:
             self.logger = Logger("StorageContext")
-            self.logger.info(f'::: type_storage = {type_storage} :::')
             if type_storage == StorageType.S3_AWS.value:
                 self.strategy = S3AwsStrategy()
             if type_storage == StorageType.LOCAL.value:
