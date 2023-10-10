@@ -1,7 +1,6 @@
 import json
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Request
-from src.core.facades.data_selection_facade import DataSelectionFacade
 from src.error.lambda_error_handler import LambdaErrorHandler
 from src.core.responses.json_response import JsonResponse
 from src.core.strategies.storage_context import StorageContext
@@ -63,7 +62,7 @@ def process_models_datasets(type_storage: str, path_base: str, body: SelectModel
     train_models = body.train_models
     target_col = 'cost'
     utils = Utils()
-    model_training = ModelTraining(utils)
+    model_training = ModelTraining(utils, type_storage)
     # Set models
     for model_type in train_models:
         set_dynamic_models(model_training, model_type.value)
@@ -166,6 +165,8 @@ def set_dynamic_models(model_training, model_type: str):
         model_training.set_model_linear_regression()
     elif model_type == ModelsType.BOOSTED_HIBRID.value:
         model_training.set_model_boosted_hybrid()
+    elif model_type == ModelsType.RANDOM_FOREST_REGRESSOR.value:
+        model_training.set_model_Random_forest_regressor()
     else:
         raise ValueError(
             f'model_type does not definided {model_type}')

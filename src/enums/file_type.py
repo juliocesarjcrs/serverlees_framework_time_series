@@ -13,3 +13,5 @@ class FileType(Enum):
     """
     MODEL = 'MODEL'
     CSV = 'CSV'
+    IMAGE = 'IMAGE'
+    HTML = 'HTML'

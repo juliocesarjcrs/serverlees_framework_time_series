@@ -34,9 +34,9 @@ class TimeSeriesFeatureEngineering:
         # Add date-related features if the index is of type DatetimeIndex
         if isinstance(data.index, pd.DatetimeIndex):
             # Get all available date attributes
-            date_attributes = ['year', 'month',
-                               'day', 'day_of_week', 'day_of_year']
-            # date_attributes = ['year', 'day_of_week', 'day_of_year']
+            # date_attributes = ['year', 'month',
+            #                    'day', 'day_of_week', 'day_of_year']
+            date_attributes = ['year', 'month']
 
             # Check if hour-related attributes are present
             if data.index.hour.min() > 0:

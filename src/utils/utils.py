@@ -13,7 +13,12 @@ from pmdarima.metrics import smape
 import locale
 locale.setlocale(locale.LC_MONETARY, 'es_CO.UTF-8')
 #  plot
-
+from src.core.strategies.storage_context import StorageContext
+# Enums
+from src.enums.file_type import FileType
+#types
+from src.types.training.model_training_types import NamesFolder, OptionsSavePlot
+from src.types.content_data import ContentData
 
 class Utils:
     def load_from_csv(self, path, date_col_name, freq=None):
@@ -268,7 +273,7 @@ class Utils:
         file_path_to_save = os.path.join(directory, file_name)
         result_df.to_csv(file_path_to_save, index=False)
 
-    def plot_time_series_individual_model(self, train_y, test_y, y_pred, output_dir, names_folder, title='Serie de Tiempo - Train, Test y Predicciones'):
+    def plot_time_series_individual_model(self, train_y, test_y, y_pred, options: OptionsSavePlot):
         """
         Grafica los datos de entrenamiento (train), prueba (test) y las predicciones de un modelo de series de tiempo.
 
@@ -287,6 +292,11 @@ class Utils:
             raise TypeError("El objeto  test_y no es una instancia de pandas.core.series.Series.")
         if not isinstance(y_pred, pd.core.series.Series):
             raise TypeError("El objeto  y_pred no es una instancia de pandas.core.series.Series.")
+
+        type_storage = options['type_storage']
+        output_dir = options['output_dir']
+        names_folder = options['names_folder']
+        title = options['title']
         # Concatenar los datos de entrenamiento, prueba y predicciones en un solo DataFrame
         df = pd.DataFrame(
             {'Train': train_y, 'Test': test_y, 'Predictions': y_pred})
@@ -310,21 +320,29 @@ class Utils:
                           legend=dict(x=0, y=1),
                           height=500)
 
-    # Mostrar el gráfico
+        # Mostrar el gráfico
 
         model = names_folder['model_name']
+        dataset_name = names_folder['dataset_name']
 
 
         # Si se proporciona un directorio de salida, guardar la figura en el archivo dentro de la carpeta correspondiente
         if output_dir:
-            # Crear carpetas para país y tienda si no existen
-            output_model_dir = os.path.join(output_dir, model)
-            os.makedirs(output_model_dir, exist_ok=True)
+            context = StorageContext(type_storage)
+            # Crear carpetas para cada modelo si no existen
+            output_dataset_dir = os.path.join(output_dir, dataset_name)
+            output_model_dir = os.path.join(output_dataset_dir, model)
+            # os.makedirs(output_model_dir, exist_ok=True)
 
             # Crear el nombre del archivo de salida en función del país y la tienda
-            output_file = os.path.join(
-                output_model_dir, f'{model}_model.html')
-            fig.write_html(output_file)
+            content: ContentData = {
+                'file': fig,
+                'directory': f'buckets/expense-control-bucket/{output_model_dir}'if type_storage== 'LOCAL' else output_model_dir,
+                'file_name': f'{model}_model.html'
+            }
+
+            context.save_file(FileType.HTML.value, content)
+            # fig.write_html(output_file)
         else:
             fig.show()
 

@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator
 import statsmodels.tsa.api as tsa
 import pmdarima as pm
 from src.core.training.models.boosted_hybrid_model import BoostedHybridModel
+from sklearn.ensemble import RandomForestRegressor
 # Error
 import xgboost as xgb
 from sklearn.linear_model import LinearRegression
@@ -14,11 +15,15 @@ from src.utils.logger.logger import Logger
 # Enums
 from src.enums.models_type import ModelsType
 
+# types
+from src.types.training.model_training_types import NamesFolder, OptionsSavePlot
+
 
 class ModelTraining:
 
-    def __init__(self, utils):
+    def __init__(self, utils, type_storage):
         self.utils = utils
+        self.type_storage = type_storage
         self.datasets = []
         self.model_metrics = []
         self.models = []
@@ -33,19 +38,19 @@ class ModelTraining:
         self.logger = Logger("ModelTraining")
 
     def set_params_model_arima(self, model_order):
-        self.models.append(('Arima', tsa.ARIMA))
+        self.models.append((ModelsType.ARIMA.value, tsa.ARIMA))
         self.order_arima = model_order
 
     def set_params_model_sarima(self, model_order_sarima):
-        self.models.append(('SARIMA', tsa.SARIMAX))
+        self.models.append((ModelsType.SARIMA.value, tsa.SARIMAX))
         self.order_arima = model_order_sarima
 
     def set_model_auto_arima(self):
-        self.models.append(('SARIMA-AutoArima', pm.auto_arima))
+        self.models.append((ModelsType.SARIMA_AUTO_ARIMA.value, pm.auto_arima))
 
     def set_model_xgboost(self):
         self.models.append(
-            ('XGBoost', xgb.XGBRegressor(early_stopping_rounds=50)))
+            (ModelsType.XGBOOST.value, xgb.XGBRegressor(early_stopping_rounds=50)))
 
     def set_model_linear_regression(self):
         self.models.append(
@@ -57,7 +62,11 @@ class ModelTraining:
             model_2=xgb.XGBRegressor()
         )
         self.models.append(
-            ('BoostedHybrid', model_hybrid))
+            (ModelsType.BOOSTED_HIBRID.value, model_hybrid))
+
+    def set_model_Random_forest_regressor(self):
+          self.models.append(
+            (ModelsType.RANDOM_FOREST_REGRESSOR.value, RandomForestRegressor()))
 
     def get_model_metrics(self):
         return self.model_metrics
@@ -138,6 +147,8 @@ class ModelTraining:
             return model.fit(train_x, train_y, eval_set=[(train_x, train_y), (test_x, test_y)], verbose=False), parameters
         elif model_name == ModelsType.LINEAR_REGRESSION.value:
             return model.fit(train_x, train_y), parameters
+        elif model_name == ModelsType.RANDOM_FOREST_REGRESSOR.value:
+            return model.fit(train_x, train_y), parameters
         elif model_name == ModelsType.BOOSTED_HIBRID.value:
             y_combined = pd.concat([train_y, test_y])
 
@@ -171,6 +182,9 @@ class ModelTraining:
         if model_name == ModelsType.LINEAR_REGRESSION.value:
             y_pred_values = model.predict(test_x)
             return pd.Series(y_pred_values, index=test_x.index)
+        elif model_name == ModelsType.RANDOM_FOREST_REGRESSOR.value:
+            y_pred_values = model.predict(test_x)
+            return pd.Series(y_pred_values, index=test_x.index)
         elif model_name == ModelsType.XGBOOST.value:
             x_test = test_x
             y_pred_values = model.predict(x_test)
@@ -187,12 +201,12 @@ class ModelTraining:
             self.logger.info(f"::: START FIT MODEL {model_name} :::")
             fitted_model, parameters = self.fit_model(
                 model, model_name, train_x, train_y, test_x, test_y)
-            self.logger.info(f"::: END FIT MODEL {model_name}   :::")
+            self.logger.info(f"::: END FIT MODEL   {model_name}   :::")
 
             self.logger.info(f"::: START PREDICT {model_name}   :::")
             y_pred = self.predict_model(
                 fitted_model, test_x, model_name, target_col)
-            self.logger.info(f"::: END PREDICT {model_name}     :::")
+            self.logger.info(f"::: END PREDICT   {model_name}     :::")
 
             if not isinstance(y_pred, pd.Series) or not isinstance(test_y, pd.Series):
                 raise ValueError(
@@ -203,8 +217,9 @@ class ModelTraining:
 
             metrics = self.utils.evaluate_forecast(test_y, y_pred, True)
 
-            names_folder = {
-                'model_name': model_name
+            names_folder: NamesFolder = {
+                'model_name': model_name,
+                'dataset_name': dataset_name
             }
 
             if not is_individual:
@@ -213,10 +228,16 @@ class ModelTraining:
                     'store': self.store,
                     'product': self.product
                 })
-            should_save_graph = False
+            should_save_graph = True
             if should_save_graph:
-                self.utils.plot_time_series(
-                    train_y, test_y, y_pred, '/code/reports/graficas_modelos', names_folder, f'Serie Tiempo - {model_name}')
+                   options_save_plot: OptionsSavePlot = {
+                       'type_storage': self.type_storage,
+                       'output_dir': 'reports/models-graph',
+                       'names_folder': names_folder,
+                       'title':  f'Serie Tiempo  -{dataset_name}-{model_name}'
+                   }
+                   self.utils.plot_time_series_individual_model(
+                    train_y, test_y, y_pred, options_save_plot)
 
             return {
                 'dataset_name': dataset_name,

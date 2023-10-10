@@ -8,3 +8,4 @@ class ModelsType(Enum):
     XGBOOST = 'XGBoost'
     LINEAR_REGRESSION = 'LinearRegression'
     BOOSTED_HIBRID = 'BoostedHybrid'
+    RANDOM_FOREST_REGRESSOR = 'RandomForestRegressor'

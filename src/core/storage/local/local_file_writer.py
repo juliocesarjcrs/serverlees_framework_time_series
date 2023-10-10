@@ -3,6 +3,7 @@ import joblib
 import pandas as pd
 from io import StringIO
 from src.utils.logger.logger import Logger
+from typing import Type
 
 
 class LocalFileWriter:
@@ -42,7 +43,7 @@ class LocalFileWriter:
         file_path = os.path.join(self.directory, file_name)
         joblib.dump(cls, file_path)
         save_sucessfull = joblib.load(file_path)
-        self.logger.info(f'::: save_sucessfull ::: ${save_sucessfull}')
+        self.logger.info(f'::: save_sucessfull ::: {save_sucessfull}')
 
     def validate_or_create_directory(self):
         """
@@ -97,3 +98,25 @@ class LocalFileWriter:
         # Guarda el DataFrame en el archivo CSV especificado
         file_path_to_save = os.path.join(self.directory, file_name)
         dataframe.to_csv(file_path_to_save, **kwargs)
+
+    def save_graph_as_html(self, file_name: str, fig: Type['plotly.graph_objs._figure.Figure'], **kwargs):
+        """
+        Save a Plotly graph object as an HTML file in the target directory.
+
+        Args:
+            file_name (str): The name of the HTML file where the graph will be saved.
+            fig (Type['plotly.graph_objs._figure.Figure']): The Plotly graph object to be saved.
+            **kwargs: Additional arguments that can be passed to Plotly's `write_html` function.
+
+        Returns:
+            None
+
+        Example:
+            To save a graph object `fig` as "my_graph.html," you can call this function as follows:
+
+            >>> target_directory = "directory/where/to/save"
+            >>> my_graph = plotly.graph_objs.Figure(data=data, layout=layout)
+            >>> instance.save_graph_as_html("my_graph.html", my_graph)
+        """
+        file_path_to_save = os.path.join(self.directory, file_name)
+        fig.write_html(file_path_to_save, **kwargs)
