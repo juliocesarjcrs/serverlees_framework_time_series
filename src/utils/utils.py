@@ -19,8 +19,12 @@ from src.enums.file_type import FileType
 #types
 from src.types.training.model_training_types import NamesFolder, OptionsSavePlot
 from src.types.content_data import ContentData
+from src.utils.logger.logger import Logger
 
 class Utils:
+
+    def __init__(self) -> None:
+        self.logger = Logger("Utils")
     def load_from_csv(self, path, date_col_name, freq=None):
         """
         Load data from a CSV file.
@@ -243,6 +247,7 @@ class Utils:
 
         folder_structure = _generate_folder_structure_aux(folder_path, "")
         file_path = os.path.join(folder_path, "folder_structure.txt")
+        self.logger.info(f'::: file_path= {file_path}:::')
         with open(file_path, "w") as f:
             f.write(folder_structure)
         return folder_structure

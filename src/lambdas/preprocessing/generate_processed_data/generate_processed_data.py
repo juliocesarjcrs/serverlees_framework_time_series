@@ -77,7 +77,6 @@ def procesed_raw_data(type_storage, path_base: str, anomaly_detection_method: st
     context.save_file(FileType.CSV.value, content, options_to_save)
 
     # ---------------------Save witout outliers -----------------
-
     data_processing_facade = DataProcessingFacade(df_time)
     df_time_without_outlier, anomalies = data_processing_facade.get_data_without_outliers(
         'cost', anomaly_detection_method)

@@ -1,5 +1,0 @@
-#models
-scikit-learn
-scipy
-pmdarima
-xgboost

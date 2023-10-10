@@ -134,5 +134,12 @@ For additional local development capabilities of `serverless-wsgi` plugin, pleas
 ### FastAPi Local development
 
 ```bash
-uvicorn src.main:app --reload
+uvicorn main:app --reload
+```
+
+
+### Run Test Local development
+
+```bash
+pytest
 ```

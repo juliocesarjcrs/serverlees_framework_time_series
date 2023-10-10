@@ -1,7 +1,20 @@
+#common
 numpy
 pandas
 requests
 joblib
+# Graph
+matplotlib
+plotly
+#models
+scikit-learn
+scipy
+pmdarima
+xgboost
+
 holidays
 tabulate
-# xgboost
+
+#test
+pytest
+httpx
