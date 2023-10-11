@@ -29,9 +29,9 @@ async def get_last_data(request: Request, type_storage: str, path_base: str):
     except Exception as exception:
         raise HTTPException(
             status_code=400, detail=f"Error en el cuerpo de la solicitud {exception}")
-
-    access_token = getExternalAccesToken(url_ext, data_acces)
-    getLastExpense(access_token, url_ext,  type_storage, path_base)
+    session = requests.Session()
+    access_token = getExternalAccesToken(session, url_ext, data_acces)
+    getLastExpense(session, access_token, url_ext,  type_storage, path_base)
 
     return {'save': type_storage}
 
@@ -49,19 +49,19 @@ def get_last_data_handler(query_sring_parameters: dict, body):
     path_base = query_sring_parameters['path_base']
     url_ext = ''
     data_acces = ''
-    access_token = getExternalAccesToken(url_ext, data_acces)
-    getLastExpense(access_token, url_ext,  type_storage, path_base)
+    session = requests.Session()
+    access_token = getExternalAccesToken(session, url_ext, data_acces)
+    getLastExpense(session, access_token, url_ext,  type_storage, path_base)
 
     return JsonResponse.handler_json_response({'save': type_storage})
 
 
-def getLastExpense(access_token: str, url_ext: str, type_storage: str, path_base: str):
+def getLastExpense(session: requests.Session, access_token: str, url_ext: str, type_storage: str, path_base: str):
     url = f'{url_ext}/expenses/last/download'
     headers = {
         'Authorization': f'Bearer {access_token}'
     }
-
-    response = requests.get(url, headers=headers)
+    response = session.get(url, headers=headers)
     context = StorageContext(type_storage)
     if response.status_code == 200:
         directory = f"./{path_base}/data/raw" if path_base else "data/raw"
@@ -78,10 +78,10 @@ def getLastExpense(access_token: str, url_ext: str, type_storage: str, path_base
 
     else:
         raise ValueError(
-            'Error en la solicitud. Código de estado:', response.status_code)
+            'Error en la solicitud getLastExpense. Código de estado:', response.status_code)
 
 
-def getExternalAccesToken(url_ext, data_access):
+def getExternalAccesToken(session: requests.Session, url_ext, data_access):
     url = f'{url_ext}/auth/login'
 
     # Datos en formato JSON
@@ -96,7 +96,8 @@ def getExternalAccesToken(url_ext, data_access):
     }
 
     # Realizar la solicitud POST
-    response = requests.post(url, json=data, headers=headers)
+    # response = session.get(url, headers=headers)
+    response = session.post(url, json=data, headers=headers)
 
     # Verificar la respuesta
     if response.status_code == 200:

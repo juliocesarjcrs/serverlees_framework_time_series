@@ -1,3 +1,5 @@
+import requests
+
 from fastapi import FastAPI
 from src.lambdas.forecast.prediction import prediction
 from src.lambdas.preprocessing.generate_processed_data import generate_processed_data
