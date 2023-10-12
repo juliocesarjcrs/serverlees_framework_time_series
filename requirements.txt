@@ -18,3 +18,4 @@ tabulate
 #test
 pytest
 httpx
+coverage

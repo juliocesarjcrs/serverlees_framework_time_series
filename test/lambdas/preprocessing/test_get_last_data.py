@@ -1,13 +1,8 @@
 
 from src.core.strategies.storage_context import StorageContext
-from main import app
+from src.main import app
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
-import sys
-import os
-project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_dir)
-
 
 # Crea un cliente de prueba para la aplicación
 client = TestClient(app)

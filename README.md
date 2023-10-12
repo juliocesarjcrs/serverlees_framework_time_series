@@ -143,3 +143,10 @@ uvicorn main:app --reload
 ```bash
 pytest
 ```
+### Run Coverage Test Local development
+
+```bash
+coverage run -m pytest
+coverage html
+
+```

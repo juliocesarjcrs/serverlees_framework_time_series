@@ -1,4 +1,3 @@
-import requests
 
 from fastapi import FastAPI
 from src.lambdas.forecast.prediction import prediction

@@ -1,10 +1,5 @@
 from fastapi.testclient import TestClient
-import sys
-import os
-project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_dir)
-
-from main import app
+from src.main import app
 
 # Crea un cliente de prueba para la aplicación
 client = TestClient(app)
