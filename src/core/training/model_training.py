@@ -3,13 +3,12 @@ from sklearn.base import BaseEstimator
 # Models
 import statsmodels.tsa.api as tsa
 import pmdarima as pm
+import xgboost as xgb
+from sklearn.linear_model import LinearRegression
+from statsmodels.tsa.deterministic import DeterministicProcess
 from src.core.training.models.boosted_hybrid_model import BoostedHybridModel
 from sklearn.ensemble import RandomForestRegressor
 # Error
-import xgboost as xgb
-from sklearn.linear_model import LinearRegression
-from src.error.exception.model_training_error import ModelTrainingError
-from statsmodels.tsa.deterministic import DeterministicProcess
 from src.utils.logger.logger import Logger
 
 # Enums
@@ -17,6 +16,9 @@ from src.enums.models_type import ModelsType
 
 # types
 from src.types.training.model_training_types import NamesFolder, OptionsSavePlot
+from typing import Dict, List
+# fastAPi
+from fastapi import HTTPException
 
 
 class ModelTraining:
@@ -65,7 +67,7 @@ class ModelTraining:
             (ModelsType.BOOSTED_HIBRID.value, model_hybrid))
 
     def set_model_Random_forest_regressor(self):
-          self.models.append(
+        self.models.append(
             (ModelsType.RANDOM_FOREST_REGRESSOR.value, RandomForestRegressor()))
 
     def get_model_metrics(self):
@@ -75,32 +77,13 @@ class ModelTraining:
         return self.names_folder
 
     def set_dataset(self, params):
-         self.datasets.append(params)
+        self.datasets.append(params)
 
     def reset_dataset(self):
-         self.datasets = []
+        self.datasets = []
 
     def reset_models(self):
-         self.models = []
-
-    def set_individual_dataset(self, dataframe: pd.DataFrame, target_col: str):
-        x = dataframe.drop(target_col, axis=1)
-        y = dataframe[target_col]
-        self.datasets = [
-            {'name': 'Normal', 'train_ratio': 0.8, 'X': x, 'y': y},
-            # {'name': 'Without Outliers', 'train_ratio': 0.8, 'X': X_without_outliers, 'y': y_without_outliers}
-            # Add more datasets if needed
-        ]
-
-        # self.datasets = []
-
-        # # Conjunto de datos normal
-        # self.datasets.append({'name': 'Normal', 'train_ratio': 0.8, 'X':x, 'y': y})
-
-        # # Conjunto de datos sin valores atípicos (si es necesario)
-        # X_without_outliers, y_without_outliers = self.remove_outliers(X, y)  # Define esta función según tus necesidades
-        # self.datasets.append({'name': 'Without Outliers', 'train_ratio': 0.8, 'X': X_without_outliers, 'y': y_without_outliers})
-
+        self.models = []
 
     def train_and_evaluate(self, target_col, with_model: bool = False):
         for dataset in self.datasets:
@@ -114,7 +97,7 @@ class ModelTraining:
                     dataset['y'], train_ratio)
 
                 result, y_pred = self.evaluate_model(dataset_name,
-                    model_name, model, train_x, train_y, test_x, test_y, target_col)
+                                                     model_name, model, train_x, train_y, test_x, test_y, target_col)
                 if with_model:
                     return result
                 else:
@@ -163,22 +146,32 @@ class ModelTraining:
 
             y_train_deterministic, y_test_deterministic = self.split_train_test_data(
                 y_combined, 0.8)
-            model_hybrid_fit = model.fit(x_train_deterministic, train_x, y_train_deterministic)
+            model_hybrid_fit = model.fit(
+                x_train_deterministic, train_x, y_train_deterministic)
             return model_hybrid_fit, parameters
+        elif model_name == ModelsType.SARIMA_AUTO_ARIMA.value:
+            return self.fit_auto_arima_model(model, train_y), parameters
         else:
-            raise ValueError(f'Undefined type of model: ${model_name}')
+            self.logger.error(
+                f'model_name is not defined by fit: {model_name}')
+            raise HTTPException(
+                status_code=400,
+                detail=f'model_name is not defined by fit: {model_name}'
+            )
 
-    def predict_model(self, model: BaseEstimator, test_x, model_name: str, target_col: str) -> pd.Series:
+    def predict_model(self, model: BaseEstimator, data: Dict[str, List[float]], model_name: str, target_col: str) -> pd.Series:
         """
-        Realiza predicciones utilizando un modelo entrenado.
-
-        Parameters:
-            model (BaseEstimator): El modelo de machine learning entrenado.
-            test_x (Any): Las características de prueba para las cuales se realizarán las predicciones.
+        Args:
+            fitted_model (Any): El modelo previamente ajustado.
+            data (Dict[str, List[float]]): Un diccionario que contiene datos de prueba.
+            model_name (str): El nombre del modelo.
+            target_col (str): El nombre de la columna objetivo.
 
         Returns:
             Any: Las predicciones realizadas por el modelo.
         """
+        test_x = data['test_x']
+        test_y = data['test_y']
         if model_name == ModelsType.LINEAR_REGRESSION.value:
             y_pred_values = model.predict(test_x)
             return pd.Series(y_pred_values, index=test_x.index)
@@ -193,8 +186,16 @@ class ModelTraining:
             return y_pred[target_col]
         elif model_name == ModelsType.BOOSTED_HIBRID.value:
             return model.predict(self.x_test_deterministic, test_x)
+        elif model_name == ModelsType.SARIMA_AUTO_ARIMA.value:
+            return model.predict(n_periods=test_y.shape[0])
         else:
-            raise ValueError(f'Undefined type of model: ${model_name}')
+            self.logger.error(
+                f'model_name is not defined by predict: {model_name}')
+            # raise ValueError(f'Undefined type of model: ${model_name}')
+            raise HTTPException(
+                status_code=400,
+                detail=f'model_name is not defined by predict: {model_name}'
+            )
 
     def evaluate_model(self, dataset_name: str, model_name: str, model, train_x, train_y, test_x, test_y, target_col, is_individual=True):
         try:
@@ -204,8 +205,12 @@ class ModelTraining:
             self.logger.info(f"::: END FIT MODEL   {model_name}   :::")
 
             self.logger.info(f"::: START PREDICT {model_name}   :::")
+            data = {
+                'test_x': test_x,
+                'test_y': test_y
+            }
             y_pred = self.predict_model(
-                fitted_model, test_x, model_name, target_col)
+                fitted_model, data, model_name, target_col)
             self.logger.info(f"::: END PREDICT   {model_name}     :::")
 
             if not isinstance(y_pred, pd.Series) or not isinstance(test_y, pd.Series):
@@ -230,13 +235,13 @@ class ModelTraining:
                 })
             should_save_graph = True
             if should_save_graph:
-                   options_save_plot: OptionsSavePlot = {
-                       'type_storage': self.type_storage,
-                       'output_dir': 'reports/models-graph',
-                       'names_folder': names_folder,
-                       'title':  f'Serie Tiempo  -{dataset_name}-{model_name}'
-                   }
-                   self.utils.plot_time_series_individual_model(
+                options_save_plot: OptionsSavePlot = {
+                    'type_storage': self.type_storage,
+                    'output_dir': 'reports/models-graph',
+                    'names_folder': names_folder,
+                    'title':  f'Serie Tiempo  -{dataset_name}-{model_name}'
+                }
+                self.utils.plot_time_series_individual_model(
                     train_y, test_y, y_pred, options_save_plot)
 
             return {
@@ -249,8 +254,12 @@ class ModelTraining:
             }, y_pred
 
         except Exception as exception:
-            raise ModelTrainingError(
-                model_name, f"Error al entrenar o evaluar el modelo {model_name}: {exception}")
+            raise HTTPException(
+                status_code=400,
+                detail=f'Error al entrenar o evaluar el modelo {model_name}: {exception}'
+            )
+            # raise ModelTrainingError(
+            #     model_name, f"Error al entrenar o evaluar el modelo {model_name}: {exception}")
 
     # def evaluate_model(self, model_name: str, model, train_X, train_y, test_X, test_y, target_col, is_individual=True):
     #     try:
@@ -337,16 +346,16 @@ class ModelTraining:
     # def fit_sarima_model(self, model, train_y, order_arima):
     #     return model(train_y, order=order_arima, seasonal_order=(P, D, Q, m), trend='c')
 
-    # def fit_auto_arima_model(self, model, train_y, order_arima):
-    #     d = order_arima[1]
-    #     auto_sarima_model = model(train_y,
-    #                               start_p=1, start_q=1,
-    #                               test='adf',
-    #                               max_p=4, max_q=4, m=7,
-    #                               start_P=0, seasonal=True,
-    #                               d=d, D=1,
-    #                               trace=False,
-    #                               error_action='ignore',
-    #                               suppress_warnings=True,
-    #                               stepwise=True)
-    #     return auto_sarima_model
+    def fit_auto_arima_model(self, model, train_y):
+
+        auto_sarima_model = model(train_y,
+                                  start_p=1, start_q=1,
+                                  test='adf',
+                                  max_p=4, max_q=4, m=7,
+                                  start_P=0, seasonal=True,
+                                  d=1, D=1,
+                                  trace=False,
+                                  error_action='ignore',
+                                  suppress_warnings=True,
+                                  stepwise=True)
+        return auto_sarima_model

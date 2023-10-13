@@ -29,15 +29,19 @@ async def select_model(request: Request, type_storage: str, path_base: str):
     try:
         data = await request.json()
         body = SelectModelBody(**data)
+
     except Exception as exception:
         raise HTTPException(
             status_code=400, detail=f"Error en el cuerpo de la solicitud {exception}")
+    # try:
 
     model_metrics, data_as_dict = process_models_datasets(
-        type_storage, path_base, body)
+    type_storage, path_base, body)
 
     return {'model_metrics': model_metrics, 'best_model': data_as_dict}
 
+    # except ValueError as error:
+    #     return {'error': error}
 
 def select_model_handler(query_sring_parameters: dict, body):
     """ get result prediction
@@ -72,7 +76,7 @@ def process_models_datasets(type_storage: str, path_base: str, body: SelectModel
     establish_datasets(datasets_to_train, path_base,
                        target_col, context, model_training)
 
-    # model_training.set_individual_dataset(processed_df, target_col)
+
     model_training.train_and_evaluate(target_col)
     # save metrics
     model_metrics = model_training.get_model_metrics()
@@ -167,9 +171,13 @@ def set_dynamic_models(model_training, model_type: str):
         model_training.set_model_boosted_hybrid()
     elif model_type == ModelsType.RANDOM_FOREST_REGRESSOR.value:
         model_training.set_model_Random_forest_regressor()
+    elif model_type == ModelsType.SARIMA_AUTO_ARIMA.value:
+        model_training.set_model_auto_arima()
     else:
-        raise ValueError(
-            f'model_type does not definided {model_type}')
+        raise HTTPException(
+            status_code=400,
+            detail=f'model_type is not defined: {model_type}'
+        )
 
 
 def handler(event: dict, context: dict):
